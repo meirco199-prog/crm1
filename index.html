@@ -365,7 +365,7 @@ label{font-weight:600;font-size:13px;color:#374151}
         <div class="row g-3 mt-1">
           <div class="col-12"><label>הערות כיסוי / פרטי נכס</label><textarea class="form-control" id="p-notes" rows="2" placeholder="פרטי הנכס, כיסויים, אוזנפון, זכוכיות..."></textarea></div>
           <div class="col-12" id="f-doc-generic">
-            <label>קובץ פוליסה <small class="text-muted fw-normal">(PDF, תמונה — עד 4MB)</small></label>
+            <label>קובץ פוליסה <small class="text-muted fw-normal">(PDF, תמונה — עד 4MB, נשמר בענן)</small></label>
             <div class="d-flex align-items-center gap-2 flex-wrap">
               <input type="file" id="p-doc" class="form-control form-control-sm" style="max-width:280px" accept=".pdf,.jpg,.jpeg,.png,.gif">
               <div id="p-doc-cur"></div>
@@ -466,9 +466,7 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const _db=firebase.database();
 
-/* ══ Cloudinary — אחסון קבצים חינמי (25GB) ══ */
-const CLOUD_NAME='dymgbirk1';
-const UPLOAD_PRESET='xdgo1mif';
+/* ══ אחסון קבצים — Firebase RTDB (base64, עד 4MB לקובץ) ══ */
 
 /* ══════════════════════════════════════════════
    STORAGE — Firebase Realtime Database (sync בין מכשירים)
@@ -1028,7 +1026,7 @@ async function savePolicy(){
   // העלאת קבצים ברקע עם הפניות שנלכדו לפני סגירת המודל
   const uploadDocBg=async(file,suffix)=>{
     if(!file)return;
-    if(file.size>20*1024*1024){toast('קובץ '+suffix+' גדול מ-20MB','warning');return;}
+    if(file.size>4*1024*1024){toast('קובץ '+suffix+' גדול מ-4MB — דחוס לפני העלאה','warning');return;}
     try{
       toast('מעלה קובץ '+suffix+'...','info');
       const url=await uploadToStorage(file,'docs/'+savedId+'/'+suffix);
@@ -1053,28 +1051,33 @@ async function delPolicy(id){
 }
 
 /* ══════════════════════════════════════════════
-   DOCUMENT HANDLING — Firebase Storage (ענן)
+   DOCUMENT HANDLING — Firebase RTDB (base64, כל סוגי קבצים)
 ══════════════════════════════════════════════ */
-function readFileAsDataURL(file){
-  return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(file)});
-}
-// Cloudinary upload → returns permanent download URL (חינמי, 25GB)
+// שמירת קובץ כ-base64 ב-Firebase RTDB — עובד לכל סוגי הקבצים (PDF, תמונה וכו')
 async function uploadToStorage(file,path){
-  const fd=new FormData();
-  fd.append('file',file);
-  fd.append('upload_preset',UPLOAD_PRESET);
-  fd.append('folder','crm-docs');
-  // resource_type=auto: Cloudinary יזהה אוטומטית תמונות / PDF / קבצים אחרים
-  const resp=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,{method:'POST',body:fd});
-  let data={};
-  try{data=await resp.json();}catch(_){}
-  if(!resp.ok||data.error){
-    const msg=data.error?.message||('HTTP '+resp.status);
-    console.error('Cloudinary error:',data);
-    throw new Error('שגיאה בהעלאה לענן: '+msg);
+  if(file.size>4*1024*1024)throw new Error('קובץ גדול מ-4MB — דחוס לפני העלאה');
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=async e=>{
+      try{
+        // Firebase לא מאפשר . # $ [ ] במפתחות
+        const safePath=path.replace(/[.#$[\]]/g,'_');
+        await _db.ref('files/'+safePath).set(e.target.result);
+        resolve('fb:'+safePath);
+      }catch(err){reject(err);}
+    };
+    reader.onerror=()=>reject(new Error('שגיאה בקריאת הקובץ'));
+    reader.readAsDataURL(file);
+  });
+}
+// המרת כתובת אחסון לכתובת ניתנת לפתיחה בדפדפן
+async function resolveUrl(storedUrl){
+  if(!storedUrl)return null;
+  if(storedUrl.startsWith('fb:')){
+    const snap=await _db.ref('files/'+storedUrl.substring(3)).once('value');
+    return snap.val(); // data URL
   }
-  if(!data.secure_url)throw new Error('Cloudinary לא החזיר כתובת קובץ');
-  return data.secure_url;
+  return storedUrl; // כתובת חיצונית (תאימות אחורה)
 }
 // Get doc metadata from Firebase cache
 function getDocMeta(pid,suffix){
@@ -1092,8 +1095,8 @@ async function deleteDocFB(pid,suffix){
   await _db.ref('docMeta/'+pid+'/'+s).remove();
   if(_fbDocMeta[pid])delete _fbDocMeta[pid][s];
 }
-// Open document viewer modal — uses Firebase Storage URL
-function openDocModal(pid,suffix){
+// Open document viewer modal — reads file from Firebase RTDB
+async function openDocModal(pid,suffix){
   const meta=getDocMeta(pid,suffix||'generic');
   if(!meta||!meta.url){toast('אין קובץ מצורף','warning');return}
   const fname=meta.name||'מסמך';
@@ -1101,37 +1104,45 @@ function openDocModal(pid,suffix){
   document.getElementById('dvm-title').textContent=fname;
   document.getElementById('dvm-info').textContent=sz?`${fname} — ${sz}`:fname;
   const prev=document.getElementById('dvm-preview');
+  prev.innerHTML='<div class="text-center py-3 text-muted small"><i class="bi bi-hourglass-split"></i> טוען קובץ...</div>';
+  new bootstrap.Modal(document.getElementById('docViewModal')).show();
+  // המרת כתובת אחסון לכתובת ניתנת לפתיחה
+  let resolved;
+  try{resolved=await resolveUrl(meta.url);}
+  catch(e){prev.innerHTML=`<div class="text-danger small">שגיאה בטעינת הקובץ: ${escHtml(e.message)}</div>`;return;}
+  if(!resolved){prev.innerHTML='<div class="text-danger small">קובץ לא נמצא בענן</div>';return;}
+  // הצג תצוגה מקדימה
   if(meta.type&&meta.type.startsWith('image/')){
-    prev.innerHTML=`<img src="${meta.url}" style="max-width:100%;max-height:280px;border-radius:6px" crossorigin="anonymous">`;
-  }else{prev.innerHTML=`<div class="text-muted small"><i class="bi bi-file-earmark-pdf fs-1 text-danger d-block mb-2"></i>${escHtml(fname)}</div>`;}
-  // View — open Firebase URL in new tab
-  document.getElementById('dvm-view').onclick=()=>window.open(meta.url,'_blank');
-  // Download
+    prev.innerHTML=`<img src="${resolved}" style="max-width:100%;max-height:280px;border-radius:6px">`;
+  }else{
+    prev.innerHTML=`<div class="text-muted small"><i class="bi bi-file-earmark-pdf fs-1 text-danger d-block mb-2"></i>${escHtml(fname)}<br><span class="badge bg-success mt-1">קובץ נטען בהצלחה ✓</span></div>`;
+  }
+  // פתח בכרטיסייה חדשה — Blob URL עובד לכל סוגי הקבצים
+  const openBlob=async()=>{
+    try{
+      const resp=await fetch(resolved);const blob=await resp.blob();
+      const blobUrl=URL.createObjectURL(blob);
+      window.open(blobUrl,'_blank');
+    }catch(e){toast('שגיאה בפתיחת הקובץ','danger');}
+  };
+  document.getElementById('dvm-view').onclick=openBlob;
+  // הורדה
   document.getElementById('dvm-download').onclick=async()=>{
     try{
-      const resp=await fetch(meta.url);const blob=await resp.blob();
+      const resp=await fetch(resolved);const blob=await resp.blob();
       const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;
       document.body.appendChild(a);a.click();document.body.removeChild(a);
-    }catch(e){window.open(meta.url,'_blank');}
+    }catch(e){toast('שגיאה בהורדה','danger');}
   };
-  // Share
+  // שיתוף
   document.getElementById('dvm-share').onclick=async()=>{
-    if(navigator.share){
-      try{
-        const resp=await fetch(meta.url);const blob=await resp.blob();
-        const file=new File([blob],fname,{type:meta.type||'application/octet-stream'});
-        if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:fname});return;}
-      }catch(e){}
-    }
-    // Fallback: copy URL or open
-    if(/Android|iPhone/i.test(navigator.userAgent)){
-      window.open(`https://wa.me/?text=${encodeURIComponent(fname+'\n'+meta.url)},'_blank'`);
-    }else{
-      try{await navigator.clipboard.writeText(meta.url);toast('קישור הועתק ללוח — שתף ידנית','info');}
-      catch(e){window.open(meta.url,'_blank');}
-    }
+    try{
+      const resp=await fetch(resolved);const blob=await resp.blob();
+      const f=new File([blob],fname,{type:meta.type||'application/octet-stream'});
+      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:fname});return;}
+    }catch(e){}
+    toast('שמור את הקובץ ושתף ידנית','info');
   };
-  new bootstrap.Modal(document.getElementById('docViewModal')).show();
 }
 function viewDoc(pid){openDocModal(pid,'generic');}
 async function delDoc(pid,suffix){
@@ -1164,7 +1175,7 @@ function quickUploadDoc(pid){
   const inp=document.createElement('input');inp.type='file';inp.accept='.pdf,.jpg,.jpeg,.png,.gif';
   inp.onchange=async function(){
     const file=inp.files[0];if(!file)return;
-    if(file.size>20*1024*1024){toast('הקובץ גדול מ-20MB','danger');return}
+    if(file.size>4*1024*1024){toast('הקובץ גדול מ-4MB — דחוס לפני העלאה','danger');return}
     try{
       toast('מעלה קובץ לענן...','info');
       const url=await uploadToStorage(file,'docs/'+pid+'/generic');
