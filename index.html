@@ -1011,6 +1011,13 @@ async function savePolicy(){
     console.error('savePolicy error:',e);
     return;
   }
+  // לכוד את הקבצים לפני סגירת המודל (אחרת renderPolicies תחליף את ה-DOM)
+  const _capturedFiles={
+    'generic': document.getElementById('p-doc')?.files[0]||null,
+    'mkif':    document.getElementById('p-doc-mkif')?.files[0]||null,
+    'hova':    document.getElementById('p-doc-hova')?.files[0]||null,
+    'sagrir':  document.getElementById('p-doc-sagrir')?.files[0]||null,
+  };
   // סגור מודל מיד — העלאת קבצים תתבצע ברקע
   policies=(await dbAll('policies')).filter(p=>p.is_active!==false);
   bootstrap.Modal.getInstance(document.getElementById('pModal'))?.hide();
@@ -1018,24 +1025,24 @@ async function savePolicy(){
   if(curSection==='policies')renderPolicies();
   if(curSection==='dashboard')loadDash();
   if(curSection==='alerts')loadAlerts();
-  // העלאת קבצים ברקע (אחרי סגירת המודל)
-  const uploadDocBg=async(inputId,suffix)=>{
-    const f=document.getElementById(inputId)?.files[0];if(!f)return;
-    if(f.size>20*1024*1024){toast('קובץ '+suffix+' גדול מ-20MB','warning');return;}
+  // העלאת קבצים ברקע עם הפניות שנלכדו לפני סגירת המודל
+  const uploadDocBg=async(file,suffix)=>{
+    if(!file)return;
+    if(file.size>20*1024*1024){toast('קובץ '+suffix+' גדול מ-20MB','warning');return;}
     try{
       toast('מעלה קובץ '+suffix+'...','info');
-      const url=await uploadToStorage(f,'docs/'+savedId+'/'+suffix);
-      await saveDocMetaFB(savedId,suffix,{name:f.name,type:f.type,size:f.size,url});
+      const url=await uploadToStorage(file,'docs/'+savedId+'/'+suffix);
+      await saveDocMetaFB(savedId,suffix,{name:file.name,type:file.type,size:file.size,url});
       toast('קובץ '+suffix+' הועלה ✓');
       if(curSection==='policies')renderPolicies();
     }catch(e){toast('שגיאה בהעלאת '+suffix+': '+e.message,'danger')}
   };
   // הפעל ברקע ללא await
   Promise.allSettled([
-    uploadDocBg('p-doc','generic'),
-    uploadDocBg('p-doc-mkif','mkif'),
-    uploadDocBg('p-doc-hova','hova'),
-    uploadDocBg('p-doc-sagrir','sagrir')
+    uploadDocBg(_capturedFiles['generic'],'generic'),
+    uploadDocBg(_capturedFiles['mkif'],'mkif'),
+    uploadDocBg(_capturedFiles['hova'],'hova'),
+    uploadDocBg(_capturedFiles['sagrir'],'sagrir'),
   ]);
 }
 async function delPolicy(id){
@@ -1057,9 +1064,16 @@ async function uploadToStorage(file,path){
   fd.append('file',file);
   fd.append('upload_preset',UPLOAD_PRESET);
   fd.append('folder','crm-docs');
+  // resource_type=auto: Cloudinary יזהה אוטומטית תמונות / PDF / קבצים אחרים
   const resp=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,{method:'POST',body:fd});
-  if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'שגיאה בהעלאה לענן')}
-  const data=await resp.json();
+  let data={};
+  try{data=await resp.json();}catch(_){}
+  if(!resp.ok||data.error){
+    const msg=data.error?.message||('HTTP '+resp.status);
+    console.error('Cloudinary error:',data);
+    throw new Error('שגיאה בהעלאה לענן: '+msg);
+  }
+  if(!data.secure_url)throw new Error('Cloudinary לא החזיר כתובת קובץ');
   return data.secure_url;
 }
 // Get doc metadata from Firebase cache
