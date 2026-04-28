@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CRM ביטוח אלמנטרי</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+:root{--sw:230px;--brand:#1a3a6e;--accent:#2563eb}
+body{background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif;font-size:14px}
+#sidebar{position:fixed;right:0;top:0;bottom:0;width:var(--sw);background:var(--brand);color:#fff;z-index:100;display:flex;flex-direction:column;box-shadow:-3px 0 15px rgba(0,0,0,.25)}
+#sidebar .brand{padding:20px 16px 12px;border-bottom:1px solid rgba(255,255,255,.12);font-size:17px;font-weight:700}
+#sidebar .brand small{display:block;font-size:11px;opacity:.6;font-weight:400;margin-top:2px}
+#sidebar nav a{display:flex;align-items:center;gap:10px;padding:11px 18px;color:rgba(255,255,255,.8);text-decoration:none;border-right:3px solid transparent;transition:.15s}
+#sidebar nav a:hover{background:rgba(255,255,255,.08);color:#fff}
+#sidebar nav a.active{background:rgba(255,255,255,.13);color:#fff;border-right-color:#60a5fa}
+#sidebar nav a i{font-size:16px;width:20px;text-align:center}
+#sidebar .sf{padding:12px 16px;font-size:11px;opacity:.45;border-top:1px solid rgba(255,255,255,.1)}
+#main{margin-right:var(--sw);min-height:100vh}
+.ph{background:#fff;border-bottom:1px solid #e2e8f0;padding:16px 24px;display:flex;align-items:center;gap:12px}
+.ph h5{margin:0;font-weight:700;color:#1e293b}
+.ct{padding:24px}
+.sc{background:#fff;border-radius:12px;padding:18px 20px;border-left:4px solid var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.sc.red{border-left-color:#ef4444}.sc.grn{border-left-color:#22c55e}.sc.org{border-left-color:#f97316}
+.sc .lbl{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.4px}
+.sc .val{font-size:28px;font-weight:700;color:#1e293b;line-height:1;margin-top:4px}
+.ar{background:#fff;border-radius:8px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;border-right:4px solid #ddd;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.ar.danger{border-right-color:#ef4444}.ar.warning{border-right-color:#f97316}.ar.info{border-right-color:#2563eb}.ar.success-border{border-right-color:#22c55e;opacity:.7}
+.ar .mi{flex:1}.ar .cn{font-weight:700;font-size:14px}.ar .det{font-size:12px;color:#64748b;margin-top:2px}
+.bt{font-size:11px;padding:3px 8px;border-radius:4px;font-weight:600}
+.bt-car{background:#dbeafe;color:#1d4ed8}.bt-apt{background:#dcfce7;color:#166534}.bt-biz{background:#fef3c7;color:#92400e}
+.bt-renewed{background:#d1fae5;color:#065f46}.bt-norenew{background:#fee2e2;color:#991b1b}
+.tc{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.tb{padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f1f5f9}
+.tb h6{margin:0;font-weight:700}
+.table thead th{background:#f8fafc;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#475569;border-bottom:1px solid #e2e8f0;padding:10px 14px}
+.table tbody td{padding:11px 14px;vertical-align:middle;border-color:#f1f5f9}
+.table tbody tr:hover{background:#fafbff}
+.pn{font-family:monospace;font-size:12px;background:#f1f5f9;padding:2px 6px;border-radius:4px}
+.modal-header{background:var(--brand);color:#fff}
+.modal-header .btn-close{filter:invert(1)}
+label{font-weight:600;font-size:13px;color:#374151}
+.pt{cursor:pointer;border:2px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center;transition:.15s}
+.pt:hover{border-color:#93c5fd;background:#eff6ff}
+.pt.sel{border-color:#2563eb;background:#eff6ff;color:#1d4ed8}
+.pt i{font-size:22px;display:block;margin-bottom:4px}
+.sec{display:none}.sec.active{display:block}
+.es{text-align:center;padding:50px 20px;color:#94a3b8}
+.es i{font-size:48px;margin-bottom:12px;display:block}
+.uz{border:2px dashed #cbd5e1;border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:.2s}
+.uz:hover{border-color:#2563eb;background:#eff6ff}
+.uz i{font-size:40px;color:#94a3b8;display:block;margin-bottom:8px}
+.ba{padding:3px 10px;font-size:12px}
+.renew-btns{display:flex;flex-direction:column;gap:4px;min-width:90px}
+.renew-btns button{font-size:11px;padding:4px 8px;white-space:nowrap}
+.renewal-note{font-size:11px;color:#64748b;font-style:italic;margin-top:3px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="brand"><i class="bi bi-shield-check"></i> CRM ביטוח<small>ניהול לקוחות אלמנטרי</small></div>
+  <nav>
+    <a href="#" onclick="nav('dashboard')" id="n-dashboard" class="active"><i class="bi bi-speedometer2"></i><span>לוח בקרה</span></a>
+    <a href="#" onclick="nav('alerts')" id="n-alerts"><i class="bi bi-bell-fill"></i><span>התראות חידוש</span><span id="abadge" class="badge bg-danger ms-auto d-none"></span></a>
+    <a href="#" onclick="nav('clients')" id="n-clients"><i class="bi bi-people-fill"></i><span>לקוחות</span></a>
+    <a href="#" onclick="nav('policies')" id="n-policies"><i class="bi bi-file-earmark-text-fill"></i><span>פוליסות</span></a>
+    <a href="#" onclick="nav('import')" id="n-import"><i class="bi bi-cloud-upload-fill"></i><span>ייבוא נתונים</span></a>
+  </nav>
+  <div class="sf">גרסה 1.1 | ביטוח אלמנטרי</div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+<!-- DASHBOARD -->
+<section class="sec active" id="sec-dashboard">
+  <div class="ph"><i class="bi bi-speedometer2 text-primary fs-4"></i><h5>לוח בקרה</h5><span id="today-lbl" class="text-muted ms-auto small"></span></div>
+  <div class="ct">
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-2"><div class="sc"><div class="lbl">לקוחות</div><div class="val" id="s0">—</div></div></div>
+      <div class="col-6 col-md-2"><div class="sc"><div class="lbl">פוליסות</div><div class="val" id="s1">—</div></div></div>
+      <div class="col-6 col-md-2"><div class="sc"><div class="lbl">רכב</div><div class="val" id="s2">—</div></div></div>
+      <div class="col-6 col-md-2"><div class="sc"><div class="lbl">דירה</div><div class="val" id="s3">—</div></div></div>
+      <div class="col-6 col-md-2"><div class="sc grn"><div class="lbl">חידוש הבא</div><div class="val" id="s4">—</div></div></div>
+      <div class="col-6 col-md-2"><div class="sc red"><div class="lbl">פג תוקף</div><div class="val" id="s5">—</div></div></div>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-6"><div class="tc p-3">
+        <h6 class="fw-bold mb-3"><i class="bi bi-exclamation-circle-fill text-danger me-2"></i>דחוף / פג תוקף</h6>
+        <div id="d-overdue"><div class="es py-3"><i class="bi bi-check-circle-fill text-success"></i>הכל תקין</div></div>
+      </div></div>
+      <div class="col-md-6"><div class="tc p-3">
+        <h6 class="fw-bold mb-3"><i class="bi bi-calendar-event text-primary me-2"></i>חידושים חודש הבא — <span id="d-nm-lbl"></span></h6>
+        <div id="d-nextmonth"><div class="es py-3"><i class="bi bi-calendar2"></i>אין חידושים</div></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ALERTS -->
+<section class="sec" id="sec-alerts">
+  <div class="ph"><i class="bi bi-bell-fill text-warning fs-4"></i><h5>התראות חידוש</h5>
+    <div class="form-check form-switch ms-auto">
+      <input class="form-check-input" type="checkbox" id="show-renewed" onchange="loadAlerts()">
+      <label class="form-check-label small" for="show-renewed">הצג גם שחודשו</label>
+    </div>
+  </div>
+  <div class="ct" id="alerts-ct"><div class="es"><i class="bi bi-hourglass-split"></i>טוען...</div></div>
+</section>
+
+<!-- CLIENTS -->
+<section class="sec" id="sec-clients">
+  <div class="ph"><i class="bi bi-people-fill text-primary fs-4"></i><h5>לקוחות</h5>
+    <button class="btn btn-primary btn-sm ms-auto" onclick="openClientModal()"><i class="bi bi-plus-lg me-1"></i>לקוח חדש</button>
+  </div>
+  <div class="ct"><div class="tc">
+    <div class="tb">
+      <h6>רשימת לקוחות</h6>
+      <div class="ms-auto"><input id="csrch" type="text" class="form-control form-control-sm" placeholder="חיפוש..." style="width:240px" oninput="renderClients()"></div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>שם</th><th>ת.ז.</th><th>טלפון</th><th>רחוב</th><th>עיר</th><th>פוליסות</th><th>פעולות</th></tr></thead>
+        <tbody id="ctbody"></tbody>
+      </table>
+    </div>
+  </div></div>
+</section>
+
+<!-- POLICIES -->
+<section class="sec" id="sec-policies">
+  <div class="ph"><i class="bi bi-file-earmark-text-fill text-primary fs-4"></i><h5>פוליסות</h5>
+    <button class="btn btn-primary btn-sm ms-auto" onclick="openPolicyModal()"><i class="bi bi-plus-lg me-1"></i>פוליסה חדשה</button>
+  </div>
+  <div class="ct"><div class="tc">
+    <div class="tb flex-wrap gap-2">
+      <h6>רשימת פוליסות</h6>
+      <div class="d-flex gap-2 ms-auto flex-wrap">
+        <input id="psrch" type="text" class="form-control form-control-sm" placeholder="חיפוש..." style="width:180px" oninput="renderPolicies()">
+        <select id="pflt" class="form-select form-select-sm" style="width:130px" onchange="renderPolicies()">
+          <option value="">כל הסוגים</option><option value="car">🚗 רכב</option>
+          <option value="apartment">🏠 דירה</option><option value="business">🏢 עסק</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead><tr>
+          <th>לקוח</th><th>מ. פוליסה</th><th>סוג</th><th>חברה</th>
+          <th>מ.ר. / כתובת / עסק</th><th>מתאריך</th><th>עד תאריך</th><th>פרמיה</th><th>סטטוס</th><th>פעולות</th>
+        </tr></thead>
+        <tbody id="ptbody"></tbody>
+      </table>
+    </div>
+  </div></div>
+</section>
+
+<!-- IMPORT -->
+<section class="sec" id="sec-import">
+  <div class="ph"><i class="bi bi-cloud-upload-fill text-primary fs-4"></i><h5>ייבוא נתונים</h5>
+    <button class="btn btn-outline-danger btn-sm ms-auto" onclick="clearAllData()"><i class="bi bi-trash3 me-1"></i>נקה כל הנתונים</button>
+  </div>
+  <div class="ct"><div class="row g-3">
+    <div class="col-md-6"><div class="tc p-4">
+      <h6 class="fw-bold mb-1"><i class="bi bi-file-binary text-primary me-2"></i>קובץ FL / PC מחברת הביטוח</h6>
+      <p class="text-muted small mb-3">קבצי .FL או .PC מחברות ביטוח אלמנטרי (הראל, מגדל, כלל וכו')</p>
+      <div class="uz" onclick="document.getElementById('fl-inp').click()">
+        <i class="bi bi-cloud-upload"></i>
+        <div class="fw-bold">לחץ לבחירת קובץ FL</div>
+        <div class="text-muted small mt-1">קבצי .FL .PC .txt .dat</div>
+      </div>
+      <input type="file" id="fl-inp" style="display:none" accept=".fl,.pc,.txt,.dat,.FL,.PC" onchange="importFL(this)">
+      <div class="form-check form-switch mt-2">
+        <input class="form-check-input" type="checkbox" id="fl-update-existing">
+        <label class="form-check-label small" for="fl-update-existing">עדכן פוליסות קיימות (שם, תאריכים, פרמיה)</label>
+      </div>
+      <div id="fl-res" class="mt-3"></div>
+    </div></div>
+    <div class="col-md-6"><div class="tc p-4">
+      <h6 class="fw-bold mb-1"><i class="bi bi-file-earmark-excel text-success me-2"></i>קובץ Excel</h6>
+      <p class="text-muted small mb-3">תומך בעמודות: שם לקוח, תז לקוח, מספר פוליסה, ענף ביטוח, פרטי הנכס המבוטח, תאריך תחילה, תאריך סיום, פרמיה נטו</p>
+      <div class="uz" onclick="document.getElementById('xl-inp').click()">
+        <i class="bi bi-cloud-upload"></i>
+        <div class="fw-bold">לחץ לבחירת קובץ Excel</div>
+        <div class="text-muted small mt-1">קבצי .xlsx .xls</div>
+      </div>
+      <input type="file" id="xl-inp" style="display:none" accept=".xlsx,.xls" onchange="importExcel(this)">
+      <div class="form-check mt-2">
+        <input class="form-check-input" type="checkbox" id="xl-overwrite" checked>
+        <label class="form-check-label small" for="xl-overwrite">עדכן פוליסות קיימות (תאריכים / פרמיה)</label>
+      </div>
+      <div id="xl-res" class="mt-3"></div>
+    </div></div>
+  </div></div>
+</section>
+
+</div><!-- /main -->
+
+<!-- ═══ CLIENT MODAL ═══ -->
+<div class="modal fade" id="cModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="c-mtitle">לקוח חדש</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="c-id">
+        <div class="row g-3">
+          <div class="col-md-6"><label>שם מלא *</label><input class="form-control" id="c-name" placeholder="ישראל ישראלי"></div>
+          <div class="col-md-6"><label>תעודת זהות</label><input class="form-control" id="c-idnum" maxlength="9" placeholder="000000000"></div>
+          <div class="col-md-6"><label>טלפון</label><input class="form-control" id="c-phone" placeholder="05X-XXXXXXX"></div>
+          <div class="col-md-6"><label>אימייל</label><input type="email" class="form-control" id="c-email"></div>
+          <div class="col-md-8"><label>כתובת</label><input class="form-control" id="c-addr" placeholder="רחוב, מספר, דירה"></div>
+          <div class="col-md-4"><label>עיר</label><input class="form-control" id="c-city" placeholder="תל אביב"></div>
+          <div class="col-12"><label>הערות</label><textarea class="form-control" id="c-notes" rows="2"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+        <button class="btn btn-primary" onclick="saveClient()"><i class="bi bi-save me-1"></i>שמירה</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ POLICY MODAL ═══ -->
+<div class="modal fade" id="pModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="p-mtitle">פוליסה חדשה</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="p-id">
+        <div class="row g-2 mb-3" id="p-type-sel">
+          <div class="col-4"><div class="pt sel" id="pt-car" onclick="selProd('car')"><i class="bi bi-car-front"></i>ביטוח רכב</div></div>
+          <div class="col-4"><div class="pt" id="pt-apartment" onclick="selProd('apartment')"><i class="bi bi-house-fill"></i>ביטוח דירה</div></div>
+          <div class="col-4"><div class="pt" id="pt-business" onclick="selProd('business')"><i class="bi bi-building"></i>ביטוח עסק</div></div>
+        </div>
+        <input type="hidden" id="p-prod" value="car">
+        <div class="row g-3">
+          <div class="col-md-6"><label>לקוח *</label><select class="form-select" id="p-client"><option value="">— בחר לקוח —</option></select></div>
+          <div class="col-md-6"><label>מספר פוליסה</label><input class="form-control font-monospace" id="p-polnum"></div>
+          <div class="col-md-6"><label>חברת ביטוח</label>
+            <select class="form-select" id="p-company">
+              <option value="">— בחר —</option>
+              <option>הראל</option><option>מגדל</option><option>כלל</option><option>הפניקס</option>
+              <option>מנורה מבטחים</option><option>ביטוח ישיר</option><option>שלמה חברה לביטוח</option>
+              <option>איילון</option><option>הסנה</option><option>AIG</option><option>אריה</option><option>אחר</option>
+            </select>
+          </div>
+          <div class="col-md-3"><label>תאריך התחלה</label><input type="date" class="form-control" id="p-start" onchange="autoEndDate()"></div>
+          <div class="col-md-3"><label>תאריך סיום / חידוש</label><input type="date" class="form-control" id="p-end"></div>
+          <div class="col-md-4" id="f-prem-generic"><label>פרמיה שנתית (₪)</label><input type="number" class="form-control" id="p-prem" step="0.01"></div>
+        </div>
+        <div id="f-car" class="mt-3">
+          <hr><strong class="text-primary"><i class="bi bi-car-front me-2"></i>פרטי רכב</strong>
+          <div class="row g-3 mt-1">
+            <div class="col-md-4"><label>מספר רישוי *</label><input class="form-control" id="p-vnum" placeholder="12-345-67"></div>
+            <div class="col-md-4"><label>יצרן</label><input class="form-control" id="p-vmake" placeholder="טויוטה"></div>
+            <div class="col-md-4"><label>דגם</label><input class="form-control" id="p-vmodel" placeholder="קורולה"></div>
+            <div class="col-md-3"><label>שנת ייצור</label><input class="form-control" id="p-vyear" maxlength="4" placeholder="2020"></div>
+            <div class="col-12">
+              <label class="mb-2">סוג כיסוי</label>
+              <div class="d-flex flex-wrap gap-3">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="p-covtype" id="cov-mkif" value="מקיף" checked onchange="updateCovSections()">
+                  <label class="form-check-label fw-normal" for="cov-mkif"><span class="badge bg-success">מקיף</span></label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="p-covtype" id="cov-hova" value="חובה" onchange="updateCovSections()">
+                  <label class="form-check-label fw-normal" for="cov-hova"><span class="badge bg-warning text-dark">חובה</span></label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="p-covtype" id="cov-both" value="מקיף+חובה" onchange="updateCovSections()">
+                  <label class="form-check-label fw-normal" for="cov-both"><span class="badge bg-primary">מקיף + חובה</span></label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="p-covtype" id="cov-sagrir" value="שגריר" onchange="updateCovSections()">
+                  <label class="form-check-label fw-normal" for="cov-sagrir"><span class="badge bg-info text-dark">שגריר</span></label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="p-covtype" id="cov-all" value="מקיף+חובה+שגריר" onchange="updateCovSections()">
+                  <label class="form-check-label fw-normal" for="cov-all"><span class="badge bg-dark">מקיף + חובה + שגריר</span></label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="p-covtype" id="cov-tsad" value="צד ג׳" onchange="updateCovSections()">
+                  <label class="form-check-label fw-normal" for="cov-tsad"><span class="badge bg-secondary">צד ג׳</span></label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- רובריקת חובה -->
+          <div id="f-cov-mkif" class="mt-2">
+            <div class="p-3 border border-success rounded" style="background:#f0fff4">
+              <strong class="text-success"><i class="bi bi-shield-check me-1"></i>ביטוח מקיף</strong>
+              <div class="row g-2 mt-1 align-items-end">
+                <div class="col-md-4"><label>פרמיה מקיף (₪)</label><input type="number" class="form-control" id="p-prem-mkif" step="0.01" placeholder="0.00"></div>
+                <div class="col-md-8">
+                  <label>קובץ פוליסת מקיף <small class="text-muted fw-normal">(PDF/תמונה עד 4MB)</small></label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="file" id="p-doc-mkif" class="form-control form-control-sm" style="max-width:260px" accept=".pdf,.jpg,.jpeg,.png,.gif">
+                    <div id="p-doc-mkif-cur"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- רובריקת מקיף -->
+          <div id="f-cov-hova" class="mt-2" style="display:none">
+            <div class="p-3 border border-warning rounded" style="background:#fffbeb">
+              <strong class="text-warning"><i class="bi bi-shield-exclamation me-1"></i>ביטוח חובה</strong>
+              <div class="row g-2 mt-1 align-items-end">
+                <div class="col-md-4"><label>פרמיה חובה (₪)</label><input type="number" class="form-control" id="p-prem-hova" step="0.01" placeholder="0.00"></div>
+                <div class="col-md-8">
+                  <label>קובץ פוליסת חובה <small class="text-muted fw-normal">(PDF/תמונה עד 4MB)</small></label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="file" id="p-doc-hova" class="form-control form-control-sm" style="max-width:260px" accept=".pdf,.jpg,.jpeg,.png,.gif">
+                    <div id="p-doc-hova-cur"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- רובריקת שגריר -->
+          <div id="f-cov-sagrir" class="mt-2" style="display:none">
+            <div class="p-3 border border-info rounded" style="background:#eff9ff">
+              <strong class="text-info"><i class="bi bi-globe2 me-1"></i>שגריר — חבילת דרך</strong>
+              <div class="row g-2 mt-1 align-items-end">
+                <div class="col-md-4"><label>פרמיה שגריר (₪)</label><input type="number" class="form-control" id="p-prem-sagrir" step="0.01" placeholder="0.00"></div>
+                <div class="col-md-8">
+                  <label>קובץ פוליסת שגריר <small class="text-muted fw-normal">(PDF/תמונה עד 4MB)</small></label>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="file" id="p-doc-sagrir" class="form-control form-control-sm" style="max-width:260px" accept=".pdf,.jpg,.jpeg,.png,.gif">
+                    <div id="p-doc-sagrir-cur"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="f-apartment" class="mt-3" style="display:none">
+          <hr><strong class="text-success"><i class="bi bi-house-fill me-2"></i>פרטי דירה</strong>
+          <div class="row g-3 mt-1">
+            <div class="col-md-8"><label>כתובת הנכס *</label><input class="form-control" id="p-paddr" placeholder="רחוב, מספר, דירה"></div>
+            <div class="col-md-4"><label>עיר</label><input class="form-control" id="p-pcity"></div>
+            <div class="col-md-3"><label>קומה</label><input class="form-control" id="p-pfloor"></div>
+          </div>
+        </div>
+        <div id="f-business" class="mt-3" style="display:none">
+          <hr><strong class="text-warning"><i class="bi bi-building me-2"></i>פרטי עסק</strong>
+          <div class="row g-3 mt-1">
+            <div class="col-md-6"><label>שם העסק *</label><input class="form-control" id="p-bname"></div>
+            <div class="col-md-6"><label>סוג עסק</label><input class="form-control" id="p-btype" placeholder="מסעדה / חנות / משרד"></div>
+            <div class="col-md-8"><label>כתובת</label><input class="form-control" id="p-baddr"></div>
+          </div>
+        </div>
+        <div class="row g-3 mt-1">
+          <div class="col-12"><label>הערות כיסוי / פרטי נכס</label><textarea class="form-control" id="p-notes" rows="2" placeholder="פרטי הנכס, כיסויים, אוזנפון, זכוכיות..."></textarea></div>
+          <div class="col-12" id="f-doc-generic">
+            <label>קובץ פוליסה <small class="text-muted fw-normal">(PDF, תמונה — עד 4MB)</small></label>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <input type="file" id="p-doc" class="form-control form-control-sm" style="max-width:280px" accept=".pdf,.jpg,.jpeg,.png,.gif">
+              <div id="p-doc-cur"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+        <button class="btn btn-primary" onclick="savePolicy()"><i class="bi bi-save me-1"></i>שמירה</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ COLOR PICKER POPUP ═══ -->
+<div id="clr-popup" style="display:none;position:fixed;z-index:9999;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.15)">
+  <div class="mb-1" style="font-size:11px;color:#64748b;font-weight:600">בחר צבע שורה</div>
+  <div id="clr-swatches" class="d-flex gap-1 flex-wrap" style="width:190px"></div>
+</div>
+
+<!-- ═══ DOCUMENT VIEWER MODAL ═══ -->
+<div class="modal fade" id="docViewModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h6 class="modal-title"><i class="bi bi-file-earmark-text me-2"></i><span id="dvm-title">מסמך פוליסה</span></h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div id="dvm-info" class="text-muted small mb-3 text-center"></div>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+          <button class="btn btn-primary" id="dvm-view"><i class="bi bi-eye me-1"></i>פתח לצפייה</button>
+          <button class="btn btn-success" id="dvm-download"><i class="bi bi-download me-1"></i>הורדה</button>
+          <button class="btn btn-info text-white" id="dvm-share"><i class="bi bi-share me-1"></i>שיתוף / שליחה</button>
+        </div>
+        <div id="dvm-preview" class="mt-3 text-center" style="max-height:300px;overflow:auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CLIENT POLICIES MODAL ═══ -->
+<div class="modal fade" id="cpModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="cp-title">פוליסות לקוח</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" id="cp-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+        <button class="btn btn-primary" id="cp-add">+ הוסף פוליסה</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RENEWAL STATUS MODAL ═══ -->
+<div class="modal fade" id="renewModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="rn-title">עדכון סטטוס חידוש</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="rn-pid">
+        <input type="hidden" id="rn-status">
+        <div class="mb-3">
+          <label class="fw-bold">הערות / פרטים</label>
+          <textarea class="form-control" id="rn-notes" rows="3" placeholder="מה קרה? פרטי חידוש, חברה חדשה, ביטול..."></textarea>
+        </div>
+        <div class="mb-2 small text-muted" id="rn-desc"></div>
+      </div>
+      <div class="modal-footer p-2">
+        <button class="btn btn-success flex-fill" id="rn-yes-btn" onclick="saveRenewal('renewed')"><i class="bi bi-check-circle me-1"></i>חודש ✓</button>
+        <button class="btn btn-danger flex-fill" id="rn-no-btn" onclick="saveRenewal('not_renewed')"><i class="bi bi-x-circle me-1"></i>לא חודש ✗</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index:9999">
+  <div id="toast" class="toast"><div class="toast-body fw-bold" id="t-msg"></div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ══════════════════════════════════════════════
+   STORAGE — localStorage (עובד מ-file:// ומכל מקום)
+══════════════════════════════════════════════ */
+const _stores={clients:[],policies:[]};
+
+function _load(name){
+  try{const d=localStorage.getItem('crm_'+name);return d?JSON.parse(d):[]}
+  catch(e){return[]}
+}
+function _save(name){
+  try{localStorage.setItem('crm_'+name,JSON.stringify(_stores[name]))}
+  catch(e){console.error('Storage full',e)}
+}
+function _nextId(name){
+  const k='crm_'+name+'_id';
+  const id=parseInt(localStorage.getItem(k)||'0')+1;
+  localStorage.setItem(k,id);return id;
+}
+
+function openDB(){
+  _stores.clients=_load('clients');
+  _stores.policies=_load('policies');
+  return Promise.resolve();
+}
+function dbAll(store){return Promise.resolve([..._stores[store]])}
+function dbGet(store,id){return Promise.resolve(_stores[store].find(x=>x.id===id))}
+function dbPut(store,obj){
+  if(!obj.id){obj={...obj,id:_nextId(store)};_stores[store].push(obj)}
+  else{const i=_stores[store].findIndex(x=>x.id===obj.id);if(i>=0)_stores[store][i]=obj;else _stores[store].push(obj)}
+  _save(store);return Promise.resolve(obj.id);
+}
+function dbDel(store,id){
+  _stores[store]=_stores[store].filter(x=>x.id!==id);
+  _save(store);return Promise.resolve();
+}
+function dbFindByIndex(store,idx,val){
+  return Promise.resolve(_stores[store].filter(x=>String(x[idx])===String(val)));
+}
+
+/* ══════════════════════════════════════════════
+   STATE & NAV
+══════════════════════════════════════════════ */
+let clients=[],policies=[],curSection='dashboard';
+function nav(s){
+  document.querySelectorAll('.sec').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('#sidebar nav a').forEach(x=>x.classList.remove('active'));
+  document.getElementById('sec-'+s).classList.add('active');
+  document.getElementById('n-'+s).classList.add('active');
+  curSection=s;
+  if(s==='dashboard')loadDash();
+  else if(s==='alerts')loadAlerts();
+  else if(s==='clients')renderClients();
+  else if(s==='policies')renderPolicies();
+  return false;
+}
+
+/* ══════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════ */
+const MHE=['','ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+function fd(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`}
+function fc(n){if(n==null||n===''||isNaN(n))return'—';return'₪'+Number(n).toLocaleString('he-IL',{minimumFractionDigits:0})}
+function pbadge(t){
+  if(t==='car')return'<span class="bt bt-car">🚗 רכב</span>';
+  if(t==='apartment')return'<span class="bt bt-apt">🏠 דירה</span>';
+  if(t==='business')return'<span class="bt bt-biz">🏢 עסק</span>';
+  return t||'';
+}
+function renewalBadge(p){
+  if(p.renewal_status==='renewed') return'<span class="bt bt-renewed">✓ חודש</span>';
+  if(p.renewal_status==='not_renewed') return'<span class="bt bt-norenew">✗ לא חודש</span>';
+  return'';
+}
+function updateCovSections(){
+  const ct=(document.querySelector('input[name="p-covtype"]:checked')||{}).value||'מקיף';
+  const hasMkif=['מקיף','מקיף+חובה','מקיף+חובה+שגריר'].includes(ct);
+  const hasHova=['חובה','מקיף+חובה','מקיף+חובה+שגריר'].includes(ct);
+  const hasSagrir=['שגריר','מקיף+חובה+שגריר'].includes(ct);
+  document.getElementById('f-cov-mkif').style.display=hasMkif?'':'none';
+  document.getElementById('f-cov-hova').style.display=hasHova?'':'none';
+  document.getElementById('f-cov-sagrir').style.display=hasSagrir?'':'none';
+  // Hide generic premium & doc for car (specific fields replace them)
+  const isCar=document.getElementById('p-prod').value==='car';
+  if(isCar){
+    document.getElementById('f-prem-generic').style.display='none';
+    document.getElementById('f-doc-generic').style.display='none';
+  }
+}
+/* ══ ROW COLOR CODING ══ */
+const ROW_COLORS={
+  '':      {bg:'',      border:'',        dot:'#cbd5e1', label:'ללא צבע'},
+  'red':   {bg:'#fff1f2',border:'#ef4444',dot:'#ef4444', label:'אדום'},
+  'orange':{bg:'#fff7ed',border:'#f97316',dot:'#f97316', label:'כתום'},
+  'yellow':{bg:'#fefce8',border:'#eab308',dot:'#eab308', label:'צהוב'},
+  'green': {bg:'#f0fdf4',border:'#22c55e',dot:'#22c55e', label:'ירוק'},
+  'teal':  {bg:'#f0fdfa',border:'#14b8a6',dot:'#14b8a6', label:'טורקיז'},
+  'blue':  {bg:'#eff6ff',border:'#3b82f6',dot:'#3b82f6', label:'כחול'},
+  'purple':{bg:'#faf5ff',border:'#a855f7',dot:'#a855f7', label:'סגול'},
+  'pink':  {bg:'#fdf2f8',border:'#ec4899',dot:'#ec4899', label:'ורוד'},
+  'gray':  {bg:'#f8fafc',border:'#94a3b8',dot:'#94a3b8', label:'אפור'},
+};
+function getRowColor(pid){return localStorage.getItem('crm_clr_'+pid)||'';}
+function setRowColor(pid,key){
+  if(key)localStorage.setItem('crm_clr_'+pid,key);
+  else localStorage.removeItem('crm_clr_'+pid);
+  closeClrPopup();
+  renderPolicies();
+}
+function getRowStyle(pid){
+  const key=getRowColor(pid);
+  if(!key)return'';
+  const c=ROW_COLORS[key]||{};
+  return c.bg?`background:${c.bg}!important;border-right:4px solid ${c.border}!important`:'';
+}
+function colorDot(pid){
+  const key=getRowColor(pid);
+  const dot=(ROW_COLORS[key]||ROW_COLORS['']).dot;
+  return`<button class="btn btn-sm ba" style="padding:2px 5px" onclick="openClrPopup(event,${pid})" title="צבע שורה"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${dot};border:1px solid #cbd5e1;vertical-align:middle"></span></button>`;
+}
+let _clrPid=null;
+function openClrPopup(e,pid){
+  e.stopPropagation();
+  _clrPid=pid;
+  const pop=document.getElementById('clr-popup');
+  const current=getRowColor(pid);
+  document.getElementById('clr-swatches').innerHTML=Object.entries(ROW_COLORS).map(([k,c])=>
+    `<span title="${c.label}" onclick="setRowColor(${pid},'${k}')" style="cursor:pointer;display:inline-block;width:28px;height:28px;border-radius:50%;background:${c.dot||'#fff'};border:3px solid ${k===current?'#1e293b':'#e2e8f0'};${k===''?'background:#f1f5f9;font-size:14px;line-height:22px;text-align:center':''}">${k===''?'✕':''}</span>`
+  ).join('');
+  const r=e.target.closest('button').getBoundingClientRect();
+  pop.style.top=(r.bottom+6)+'px';
+  pop.style.right=(window.innerWidth-r.right)+'px';
+  pop.style.left='auto';
+  pop.style.display='block';
+}
+function closeClrPopup(){document.getElementById('clr-popup').style.display='none';_clrPid=null;}
+document.addEventListener('click',()=>closeClrPopup());
+function autoEndDate(){
+  const s=document.getElementById('p-start').value;
+  if(!s)return;
+  const d=new Date(s);
+  d.setFullYear(d.getFullYear()+1);
+  d.setDate(d.getDate()-1);
+  document.getElementById('p-end').value=d.toISOString().split('T')[0];
+}
+function covBadge(ct){
+  const s='font-size:10px';
+  if(!ct||ct==='מקיף')return`<span class="badge bg-success" style="${s}">מקיף</span>`;
+  if(ct==='חובה')return`<span class="badge bg-warning text-dark" style="${s}">חובה</span>`;
+  if(ct==='מקיף+חובה')return`<span class="badge bg-primary" style="${s}">מקיף+חובה</span>`;
+  if(ct==='שגריר')return`<span class="badge bg-info text-dark" style="${s}">שגריר</span>`;
+  if(ct==='מקיף+חובה+שגריר')return`<span class="badge bg-dark" style="${s}">מקיף+חובה+שגריר</span>`;
+  if(ct==="צד ג׳")return`<span class="badge bg-secondary" style="${s}">צד ג׳</span>`;
+  return`<span class="badge bg-light text-dark" style="${s}">${ct}</span>`;
+}
+function fmtPlate(vn){
+  if(!vn)return'—';
+  const d=vn.replace(/\D/g,'');
+  if(d.length===8)return`${d.slice(0,3)}-${d.slice(3,5)}-${d.slice(5)}`;
+  if(d.length===7)return`${d.slice(0,2)}-${d.slice(2,5)}-${d.slice(5)}`;
+  return vn;
+}
+function identF(p){
+  if(p.product_type==='car'){
+    const pl=p.vehicle_number?`<span class="pn fw-bold">${fmtPlate(p.vehicle_number)}</span>`:'<span class="text-muted small">אין מ.ר.</span>';
+    const mk=[p.vehicle_make,p.vehicle_model,p.vehicle_year].filter(Boolean).join(' ');
+    const cv=covBadge(p.coverage_type);
+    return pl+' '+cv+(mk?`<br><small class="text-muted">${mk}</small>`:'');
+  }
+  if(p.product_type==='apartment'){
+    const a=[p.property_address,p.property_city].filter(Boolean).join(', ');
+    return a||p.coverage_notes||'—';
+  }
+  if(p.product_type==='business')return p.business_name||(p.business_address||'—');
+  return'—';
+}
+function rcls(rd){
+  if(!rd)return'';
+  const t=new Date();t.setHours(0,0,0,0);
+  const diff=Math.floor((new Date(rd)-t)/86400000);
+  if(diff<0)return'table-danger';
+  if(diff<=14)return'table-warning';
+  if(diff<=60)return'table-info';
+  return'';
+}
+function today(){return new Date().toISOString().slice(0,10)}
+function thisMonthRange(){
+  const t=new Date();
+  const y=t.getFullYear(),m=t.getMonth()+1;
+  const last=new Date(y,m,0).getDate();
+  return{start:`${y}-${String(m).padStart(2,'0')}-01`,end:`${y}-${String(m).padStart(2,'0')}-${String(last).padStart(2,'0')}`,label:`${MHE[m]} ${y}`};
+}
+function nextMonthRange(){
+  const t=new Date();
+  let y=t.getFullYear(),m=t.getMonth()+2;
+  if(m>12){m=1;y++}
+  const last=new Date(y,m,0).getDate();
+  return{start:`${y}-${String(m).padStart(2,'0')}-01`,end:`${y}-${String(m).padStart(2,'0')}-${String(last).padStart(2,'0')}`,label:`${MHE[m]} ${y}`};
+}
+
+/* TOAST */
+const toastEl=document.getElementById('toast');
+const bsToast=new bootstrap.Toast(toastEl,{delay:3500});
+function toast(msg,type='success'){document.getElementById('t-msg').textContent=msg;toastEl.className=`toast text-bg-${type}`;bsToast.show()}
+
+/* ══════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════ */
+async function loadDash(){
+  const t=new Date();
+  document.getElementById('today-lbl').textContent=`${t.getDate()} ${MHE[t.getMonth()+1]} ${t.getFullYear()}`;
+  clients=await dbAll('clients');
+  policies=(await dbAll('policies')).filter(p=>p.is_active!==false);
+  const th=thisMonthRange();
+  document.getElementById('d-nm-lbl').textContent=th.label;
+  const overdue=policies.filter(p=>p.renewal_date&&p.renewal_date<th.start&&!p.renewal_status);
+  const nmP=policies.filter(p=>p.renewal_date&&p.renewal_date>=th.start&&p.renewal_date<=th.end&&!p.renewal_status);
+  document.getElementById('s0').textContent=clients.length;
+  document.getElementById('s1').textContent=policies.length;
+  document.getElementById('s2').textContent=policies.filter(p=>p.product_type==='car').length;
+  document.getElementById('s3').textContent=policies.filter(p=>p.product_type==='apartment').length;
+  document.getElementById('s4').textContent=nmP.length;
+  document.getElementById('s5').textContent=overdue.length;
+  const bc=overdue.length+nmP.length;
+  const badge=document.getElementById('abadge');
+  if(bc>0){badge.textContent=bc;badge.classList.remove('d-none')}else badge.classList.add('d-none');
+  renderAlertRows('d-overdue',overdue,'danger');
+  renderAlertRows('d-nextmonth',nmP,'info');
+}
+function renderAlertRows(cid,rows,cls){
+  const el=document.getElementById(cid);
+  if(!rows.length){el.innerHTML=`<div class="es py-3"><i class="bi bi-check2-circle text-success"></i><div class="mt-1 small">אין רשומות</div></div>`;return}
+  el.innerHTML=rows.slice(0,5).map(p=>{
+    const c=clients.find(x=>x.id===p.client_id)||{};
+    return`<div class="ar ${cls}">
+      <div class="mi"><div class="cn">${c.name||'—'}</div>
+        <div class="det">${pbadge(p.product_type)} פוליסה: <span class="pn">${p.policy_number||'—'}</span> ${identF(p)}</div>
+      </div>
+      <div class="text-end">
+        <div class="fw-bold ${cls==='danger'?'text-danger':''}">${fd(p.renewal_date)}</div>
+        <div class="small text-muted">${c.phone||''}</div>
+      </div>
+    </div>`;}).join('');
+  if(rows.length>5)el.innerHTML+=`<div class="text-center small text-muted mt-1">ועוד ${rows.length-5} נוספות</div>`;
+}
+
+/* ══════════════════════════════════════════════
+   ALERTS PAGE
+══════════════════════════════════════════════ */
+async function loadAlerts(){
+  clients=await dbAll('clients');
+  policies=(await dbAll('policies')).filter(p=>p.is_active!==false);
+  const showRenewed=document.getElementById('show-renewed').checked;
+  const th=thisMonthRange();
+  const t=new Date();
+
+  // החודש הנוכחי בלבד — רק פוליסות שמסתיימות החודש
+  const thisM=policies.filter(p=>p.renewal_date&&p.renewal_date>=th.start&&p.renewal_date<=th.end&&(showRenewed||!p.renewal_status));
+
+  let html='';
+  if(thisM.length)html+=alertSection('warning','alarm-fill',`חידוש החודש — ${MHE[t.getMonth()+1]} ${t.getFullYear()} (${th.end})`,thisM);
+  if(!html)html=`<div class="es"><i class="bi bi-shield-check"></i>אין חידושים לחודש ${MHE[t.getMonth()+1]} ${t.getFullYear()}</div>`;
+  document.getElementById('alerts-ct').innerHTML=html;
+}
+
+function alertSection(color,icon,title,rows){
+  return`<div class="mb-4"><h6 class="text-${color} fw-bold"><i class="bi bi-${icon} me-2"></i>${title} (${rows.length})</h6>
+  ${rows.map(p=>{
+    const c=clients.find(x=>x.id===p.client_id)||{};
+    const isRenewed=p.renewal_status==='renewed';
+    const isNotRenewed=p.renewal_status==='not_renewed';
+    return`<div class="ar ${isRenewed?'success-border':isNotRenewed?'danger':''}" id="ar-${p.id}">
+      <div style="font-size:22px;min-width:34px;text-align:center">${p.product_type==='car'?'🚗':p.product_type==='apartment'?'🏠':'🏢'}</div>
+      <div class="mi">
+        <div class="cn">${c.name||'—'} <span class="text-muted fw-normal small">${c.phone||''}</span>
+          ${renewalBadge(p)}</div>
+        <div class="det"><b>פוליסה:</b> <span class="pn">${p.policy_number||'—'}</span> &nbsp;
+          <b>חברה:</b> ${p.insurance_company||'—'} &nbsp;
+          ${p.product_type==='car'?`<b>רישוי:</b> ${p.vehicle_number||'—'}`:''}
+          ${p.product_type==='apartment'?`<b>כתובת:</b> ${identF(p)}`:''}
+          ${p.product_type==='business'?`<b>עסק:</b> ${p.business_name||'—'}`:''}
+        </div>
+        <div class="det"><b>פרמיה:</b> ${fc(p.annual_premium)} &nbsp; <b>מ:</b> ${fd(p.start_date)} &nbsp; <b>עד:</b> ${fd(p.end_date)}</div>
+        ${p.renewal_notes?`<div class="renewal-note">💬 ${p.renewal_notes}</div>`:''}
+      </div>
+      <div class="text-end" style="min-width:90px">
+        <div class="fw-bold fs-6">${fd(p.renewal_date)}</div>
+        <div class="small text-muted mb-2">תאריך חידוש</div>
+        <div class="renew-btns">
+          <button class="btn btn-sm ${isRenewed?'btn-success':'btn-outline-success'}" onclick="openRenewal(${p.id},'renewed')">✓ חודש</button>
+          <button class="btn btn-sm ${isNotRenewed?'btn-danger':'btn-outline-danger'}" onclick="openRenewal(${p.id},'not_renewed')">✗ לא חודש</button>
+          <button class="btn btn-sm btn-outline-secondary ba" onclick="editPolicy(${p.id})"><i class="bi bi-pencil"></i></button>
+        </div>
+      </div>
+    </div>`;}).join('')}
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════
+   RENEWAL STATUS
+══════════════════════════════════════════════ */
+function openRenewal(pid,status){
+  document.getElementById('rn-pid').value=pid;
+  document.getElementById('rn-status').value=status;
+  document.getElementById('rn-notes').value='';
+  document.getElementById('rn-title').textContent=status==='renewed'?'✓ סימון כחודש':'✗ סימון כלא חודש';
+  document.getElementById('rn-desc').textContent=status==='renewed'?'הפוליסה חודשה — אפשר לרשום פרטים':'הפוליסה לא חודשה — אפשר לרשום סיבה';
+  new bootstrap.Modal(document.getElementById('renewModal')).show();
+}
+async function saveRenewal(status){
+  const pid=parseInt(document.getElementById('rn-pid').value);
+  const notes=document.getElementById('rn-notes').value.trim();
+  const p=await dbGet('policies',pid);
+  p.renewal_status=status;
+  p.renewal_notes=notes;
+  await dbPut('policies',p);
+  bootstrap.Modal.getInstance(document.getElementById('renewModal'))?.hide();
+  toast(status==='renewed'?'הפוליסה סומנה כחודשה ✓':'הפוליסה סומנה כלא חודשה');
+  policies=(await dbAll('policies')).filter(x=>x.is_active!==false);
+  loadAlerts();
+  if(curSection==='dashboard')loadDash();
+}
+
+/* ══════════════════════════════════════════════
+   CLIENTS
+══════════════════════════════════════════════ */
+async function renderClients(){
+  if(!clients.length)clients=await dbAll('clients');
+  if(!policies.length)policies=(await dbAll('policies')).filter(p=>p.is_active!==false);
+  const q=(document.getElementById('csrch').value||'').trim().toLowerCase();
+  const list=q?clients.filter(c=>[c.name,c.id_number,c.phone,c.address,c.city].some(v=>v&&v.toString().toLowerCase().includes(q))):clients;
+  const tbody=document.getElementById('ctbody');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="7"><div class="es py-3"><i class="bi bi-person-x"></i><div>אין לקוחות</div></div></td></tr>`;return}
+  tbody.innerHTML=list.map(c=>{
+    const pc=policies.filter(p=>p.client_id===c.id).length;
+    // Detect fallback name (לקוח + digits) — show in orange so user knows to fix
+    const isFallback=c.name&&/^לקוח\s*\d/.test(c.name);
+    const nameHtml=isFallback
+      ?`<span class="text-warning fw-bold" title="שם לא זוהה — ייבא מחדש את ה-FL כדי לעדכן"><i class="bi bi-exclamation-triangle-fill me-1"></i>${c.name}</span>`
+      :`<b>${c.name||'ללא שם'}</b>`;
+    // Collect vehicle plates for car policies of this client
+    const carPolicies=policies.filter(p=>p.client_id===c.id&&p.product_type==='car'&&p.vehicle_number);
+    const platesHtml=carPolicies.length?`<br><small class="text-primary">${carPolicies.map(p=>`🚗 ${fmtPlate(p.vehicle_number)}`).join(' | ')}</small>`:'';
+    const safeName=(c.name||'').replace(/'/g,"\\'");
+    return`<tr>
+      <td>${nameHtml}${platesHtml}</td>
+      <td class="pn">${c.id_number||'—'}</td>
+      <td>${c.phone?`<a href="tel:${c.phone}">${c.phone}</a>`:'—'}</td>
+      <td style="font-size:12px">${c.address||'—'}</td>
+      <td style="font-size:12px">${c.city||'—'}</td>
+      <td><a href="#" onclick="showCPolicies(${c.id},'${safeName}');return false" class="badge bg-primary text-decoration-none">${pc} פוליסות</a></td>
+      <td>
+        <button class="btn btn-sm btn-outline-secondary ba me-1" onclick="openClientModal(${c.id})"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger ba" onclick="delClient(${c.id},'${safeName}')"><i class="bi bi-trash"></i></button>
+      </td>
+    </tr>`;}).join('');
+}
+async function openClientModal(id=null){
+  ['c-id','c-name','c-idnum','c-phone','c-email','c-addr','c-city','c-notes'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('c-mtitle').textContent=id?'עריכת לקוח':'לקוח חדש';
+  if(id){const c=await dbGet('clients',id);document.getElementById('c-id').value=c.id;document.getElementById('c-name').value=c.name||'';document.getElementById('c-idnum').value=c.id_number||'';document.getElementById('c-phone').value=c.phone||'';document.getElementById('c-email').value=c.email||'';document.getElementById('c-addr').value=c.address||'';document.getElementById('c-city').value=c.city||'';document.getElementById('c-notes').value=c.notes||''}
+  new bootstrap.Modal(document.getElementById('cModal')).show();
+}
+async function saveClient(){
+  const name=document.getElementById('c-name').value.trim();
+  if(!name){toast('נא להזין שם לקוח','danger');return}
+  const id=document.getElementById('c-id').value;
+  const obj={name,id_number:document.getElementById('c-idnum').value.trim(),phone:document.getElementById('c-phone').value.trim(),email:document.getElementById('c-email').value.trim(),address:document.getElementById('c-addr').value.trim(),city:document.getElementById('c-city').value.trim(),notes:document.getElementById('c-notes').value.trim(),created_at:new Date().toISOString()};
+  if(id)obj.id=parseInt(id);
+  await dbPut('clients',obj);
+  clients=await dbAll('clients');
+  bootstrap.Modal.getInstance(document.getElementById('cModal'))?.hide();
+  toast(id?'לקוח עודכן':'לקוח נוסף');
+  renderClients();if(curSection==='dashboard')loadDash();
+}
+async function delClient(id,name){
+  if(!confirm(`למחוק את "${name}" ואת כל פוליסותיו?`))return;
+  const ps=await dbFindByIndex('policies','client_id',id);
+  for(const p of ps)await dbDel('policies',p.id);
+  await dbDel('clients',id);
+  clients=clients.filter(c=>c.id!==id);policies=policies.filter(p=>p.client_id!==id);
+  toast('לקוח נמחק');renderClients();
+}
+
+/* ══════════════════════════════════════════════
+   POLICIES
+══════════════════════════════════════════════ */
+async function renderPolicies(){
+  if(!clients.length)clients=await dbAll('clients');
+  policies=(await dbAll('policies')).filter(p=>p.is_active!==false);
+  const q=(document.getElementById('psrch').value||'').trim().toLowerCase();
+  const flt=document.getElementById('pflt').value;
+  let list=policies;
+  if(flt)list=list.filter(p=>p.product_type===flt);
+  if(q)list=list.filter(p=>{const c=clients.find(x=>x.id===p.client_id)||{};return[c.name,p.policy_number,p.vehicle_number,p.property_address,p.business_name,p.coverage_notes].some(v=>v&&v.toString().toLowerCase().includes(q))});
+  list.sort((a,b)=>(a.renewal_date||'9').localeCompare(b.renewal_date||'9'));
+  const tbody=document.getElementById('ptbody');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="10"><div class="es py-3"><i class="bi bi-file-x"></i><div>אין פוליסות</div></div></td></tr>`;return}
+  tbody.innerHTML=list.map(p=>{
+    const c=clients.find(x=>x.id===p.client_id)||{};
+    const safeCN=(c.name||'').replace(/'/g,"\\'");
+    const rowStyle=getRowStyle(p.id);
+    return`<tr class="${rcls(p.renewal_date)}" style="${rowStyle}">
+      <td><a href="#" class="fw-bold text-dark text-decoration-none" onclick="showCPolicies(${c.id},'${safeCN}');return false">${c.name||'—'}</a></td>
+      <td><span class="pn">${p.policy_number||'—'}</span></td>
+      <td>${pbadge(p.product_type)}</td>
+      <td>${p.insurance_company||'—'}</td>
+      <td style="max-width:180px;white-space:normal;font-size:12px">${identF(p)}</td>
+      <td>${fd(p.start_date)}</td>
+      <td><b>${fd(p.end_date)}</b></td>
+      <td>${fc(p.annual_premium)}</td>
+      <td>${renewalBadge(p)}</td>
+      <td>
+        ${colorDot(p.id)}
+        ${docBtn(p.id)}
+        <button class="btn btn-sm btn-outline-secondary ba mx-1" onclick="editPolicy(${p.id})"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger ba" onclick="delPolicy(${p.id})"><i class="bi bi-trash"></i></button>
+      </td>
+    </tr>`;}).join('');
+}
+function selProd(t){
+  document.getElementById('p-prod').value=t;
+  ['car','apartment','business'].forEach(x=>{document.getElementById('pt-'+x).classList.toggle('sel',x===t);document.getElementById('f-'+x).style.display=x===t?'':'none'});
+  const isCar=t==='car';
+  document.getElementById('f-prem-generic').style.display=isCar?'none':'';
+  document.getElementById('f-doc-generic').style.display=isCar?'none':'';
+  if(isCar)updateCovSections();
+}
+async function openPolicyModal(clientId=null){
+  ['p-id','p-polnum','p-start','p-end','p-prem','p-vnum','p-vmake','p-vmodel','p-vyear','p-paddr','p-pcity','p-pfloor','p-bname','p-btype','p-baddr','p-notes'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('cov-mkif').checked=true;
+  ['p-prem-mkif','p-prem-hova','p-prem-sagrir'].forEach(x=>document.getElementById(x).value='');
+  ['p-doc-mkif','p-doc-hova','p-doc-sagrir'].forEach(x=>document.getElementById(x).value='');
+  ['p-doc-mkif-cur','p-doc-hova-cur','p-doc-sagrir-cur'].forEach(x=>document.getElementById(x).innerHTML='');
+  document.getElementById('p-company').value='';
+  document.getElementById('p-doc').value='';
+  document.getElementById('p-doc-cur').innerHTML='';
+  document.getElementById('p-mtitle').textContent='פוליסה חדשה';
+  document.getElementById('p-type-sel').style.display='';
+  selProd('car');
+  if(!clients.length)clients=await dbAll('clients');
+  const sel=document.getElementById('p-client');
+  sel.innerHTML='<option value="">— בחר לקוח —</option>'+clients.map(c=>`<option value="${c.id}" ${c.id==clientId?'selected':''}>${c.name}${c.id_number?' ('+c.id_number+')':''}</option>`).join('');
+  new bootstrap.Modal(document.getElementById('pModal')).show();
+}
+async function editPolicy(id){
+  if(!clients.length)clients=await dbAll('clients');
+  const p=await dbGet('policies',id);
+  document.getElementById('p-id').value=p.id;
+  document.getElementById('p-mtitle').textContent='עריכת פוליסה';
+  document.getElementById('p-type-sel').style.display='none';
+  selProd(p.product_type||'car');
+  document.getElementById('p-type-sel').style.display='none';
+  const sel=document.getElementById('p-client');
+  sel.innerHTML=clients.map(c=>`<option value="${c.id}" ${c.id===p.client_id?'selected':''}>${c.name}${c.id_number?' ('+c.id_number+')':''}</option>`).join('');
+  document.getElementById('p-polnum').value=p.policy_number||'';document.getElementById('p-company').value=p.insurance_company||'';
+  document.getElementById('p-start').value=p.start_date||'';document.getElementById('p-end').value=p.renewal_date||p.end_date||'';
+  document.getElementById('p-prem').value=p.annual_premium||'';document.getElementById('p-vnum').value=p.vehicle_number||'';
+  document.getElementById('p-vmake').value=p.vehicle_make||'';document.getElementById('p-vmodel').value=p.vehicle_model||'';
+  document.getElementById('p-vyear').value=p.vehicle_year||'';document.getElementById('p-paddr').value=p.property_address||'';
+  document.getElementById('p-pcity').value=p.property_city||'';document.getElementById('p-pfloor').value=p.property_floor||'';
+  document.getElementById('p-bname').value=p.business_name||'';document.getElementById('p-btype').value=p.business_type||'';
+  document.getElementById('p-baddr').value=p.business_address||'';document.getElementById('p-notes').value=p.coverage_notes||'';
+  const covVal=p.coverage_type||'מקיף';
+  const covEl=document.querySelector(`input[name="p-covtype"][value="${covVal}"]`);
+  if(covEl)covEl.checked=true;else document.getElementById('cov-mkif').checked=true;
+  document.getElementById('p-prem-mkif').value=p.premium_mkif||'';
+  document.getElementById('p-prem-hova').value=p.premium_hova||'';
+  document.getElementById('p-prem-sagrir').value=p.premium_sagrir||'';
+  ['p-doc-mkif','p-doc-hova','p-doc-sagrir'].forEach(x=>document.getElementById(x).value='');
+  const showDocCur=(suffix,pid)=>{
+    const el=document.getElementById('p-doc-'+suffix+'-cur');
+    const m=localStorage.getItem('crm_doc_meta_'+suffix+'_'+pid);
+    if(m){const mt=JSON.parse(m);el.innerHTML=`<span class="badge bg-success"><i class="bi bi-check2"></i> ${mt.name}</span>`;}else el.innerHTML='';
+  };
+  showDocCur('mkif',p.id);showDocCur('hova',p.id);showDocCur('sagrir',p.id);
+  updateCovSections();
+  document.getElementById('p-doc').value='';
+  renderDocCur(p.id);
+  new bootstrap.Modal(document.getElementById('pModal')).show();
+}
+async function savePolicy(){
+  const cid=document.getElementById('p-client').value;
+  if(!cid){toast('נא לבחור לקוח','danger');return}
+  const id=document.getElementById('p-id').value;
+  const covType=(document.querySelector('input[name="p-covtype"]:checked')||{}).value||'מקיף';
+  const isCar=document.getElementById('p-prod').value==='car';
+  const premMkif=isCar?parseFloat(document.getElementById('p-prem-mkif').value)||0:0;
+  const premHova=isCar?parseFloat(document.getElementById('p-prem-hova').value)||0:0;
+  const premSagrir=isCar?parseFloat(document.getElementById('p-prem-sagrir').value)||0:0;
+  const totalPrem=isCar?(premMkif+premHova+premSagrir)||null:parseFloat(document.getElementById('p-prem').value)||null;
+  const obj={client_id:parseInt(cid),policy_number:document.getElementById('p-polnum').value.trim(),product_type:document.getElementById('p-prod').value,insurance_company:document.getElementById('p-company').value,coverage_type:covType,premium_mkif:premMkif||null,premium_hova:premHova||null,premium_sagrir:premSagrir||null,start_date:document.getElementById('p-start').value,end_date:document.getElementById('p-end').value,renewal_date:document.getElementById('p-end').value,annual_premium:totalPrem,vehicle_number:document.getElementById('p-vnum').value.trim(),vehicle_make:document.getElementById('p-vmake').value.trim(),vehicle_model:document.getElementById('p-vmodel').value.trim(),vehicle_year:document.getElementById('p-vyear').value.trim(),property_address:document.getElementById('p-paddr').value.trim(),property_city:document.getElementById('p-pcity').value.trim(),property_floor:document.getElementById('p-pfloor').value.trim(),business_name:document.getElementById('p-bname').value.trim(),business_type:document.getElementById('p-btype').value.trim(),business_address:document.getElementById('p-baddr').value.trim(),coverage_notes:document.getElementById('p-notes').value.trim(),is_active:true,created_at:new Date().toISOString()};
+  if(id){obj.id=parseInt(id);const ex=await dbGet('policies',obj.id);if(ex){obj.renewal_status=ex.renewal_status;obj.renewal_notes=ex.renewal_notes}}
+  const savedId=await dbPut('policies',obj);
+  // Save generic doc (apartment/business)
+  const docFile=document.getElementById('p-doc').files[0];
+  if(docFile){
+    if(docFile.size>4*1024*1024){toast('הקובץ גדול מ-4MB — לא נשמר','warning')}
+    else{try{const dataUrl=await readFileAsDataURL(docFile);localStorage.setItem('crm_doc_'+savedId,dataUrl);localStorage.setItem('crm_doc_meta_'+savedId,JSON.stringify({name:docFile.name,type:docFile.type,size:docFile.size}));}catch(e){toast('שגיאה בשמירת הקובץ','warning')}}
+  }
+  // Save car-specific docs (מקיף / חובה / שגריר)
+  const saveCarDoc=async(suffix)=>{
+    const f=document.getElementById('p-doc-'+suffix)?.files[0];
+    if(!f)return;
+    if(f.size>4*1024*1024){toast('קובץ '+suffix+' גדול מ-4MB','warning');return;}
+    try{const d=await readFileAsDataURL(f);localStorage.setItem('crm_doc_'+suffix+'_'+savedId,d);localStorage.setItem('crm_doc_meta_'+suffix+'_'+savedId,JSON.stringify({name:f.name,type:f.type,size:f.size}));}catch(e){}
+  };
+  await saveCarDoc('mkif');await saveCarDoc('hova');await saveCarDoc('sagrir');
+  policies=(await dbAll('policies')).filter(p=>p.is_active!==false);
+  bootstrap.Modal.getInstance(document.getElementById('pModal'))?.hide();
+  toast(id?'פוליסה עודכנה':'פוליסה נוספה');
+  if(curSection==='policies')renderPolicies();
+  if(curSection==='dashboard')loadDash();
+  if(curSection==='alerts')loadAlerts();
+}
+async function delPolicy(id){
+  if(!confirm('להסיר פוליסה זו?'))return;
+  const p=await dbGet('policies',id);p.is_active=false;
+  await dbPut('policies',p);policies=policies.filter(x=>x.id!==id);
+  toast('פוליסה הוסרה');renderPolicies();
+}
+
+/* ══════════════════════════════════════════════
+   DOCUMENT HANDLING
+══════════════════════════════════════════════ */
+function readFileAsDataURL(file){
+  return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(file)});
+}
+function docMeta(pid){
+  try{return JSON.parse(localStorage.getItem('crm_doc_meta_'+pid))||null}catch(e){return null}
+}
+// Convert dataURL → Blob
+function dataUrlToBlob(data){
+  const arr=data.split(','),mime=(arr[0].match(/:(.*?);/)||[])[1]||'application/octet-stream';
+  const bstr=atob(arr[1]);const bytes=new Uint8Array(bstr.length);
+  for(let i=0;i<bstr.length;i++)bytes[i]=bstr.charCodeAt(i);
+  return new Blob([bytes],{type:mime});
+}
+// Open the document viewer modal
+function openDocModal(dataKey,metaKey){
+  const data=localStorage.getItem(dataKey);
+  if(!data){toast('אין קובץ מצורף','warning');return}
+  let meta={};try{meta=JSON.parse(localStorage.getItem(metaKey))||{};}catch(e){}
+  const fname=meta.name||'מסמך';
+  const sz=meta.size?(meta.size<1024*1024?(meta.size/1024).toFixed(0)+'KB':((meta.size/1024/1024).toFixed(1))+'MB'):'';
+  document.getElementById('dvm-title').textContent=fname;
+  document.getElementById('dvm-info').textContent=sz?`${fname} — ${sz}`:fname;
+  const blob=dataUrlToBlob(data);
+  const blobUrl=URL.createObjectURL(blob);
+  // Preview for images
+  const prev=document.getElementById('dvm-preview');
+  if(meta.type&&meta.type.startsWith('image/')){
+    prev.innerHTML=`<img src="${data}" style="max-width:100%;max-height:280px;border-radius:6px">`;
+  }else{prev.innerHTML=`<div class="text-muted small"><i class="bi bi-file-earmark-pdf fs-1 text-danger d-block mb-2"></i>${fname}</div>`;}
+  // View
+  document.getElementById('dvm-view').onclick=()=>window.open(blobUrl,'_blank');
+  // Download
+  document.getElementById('dvm-download').onclick=()=>{
+    const a=document.createElement('a');a.href=data;a.download=fname;a.click();
+  };
+  // Share
+  document.getElementById('dvm-share').onclick=async()=>{
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],fname,{type:blob.type})]})){
+      try{await navigator.share({files:[new File([blob],fname,{type:blob.type})],title:fname});return;}catch(e){}
+    }
+    // Fallback: WhatsApp (mobile) or download
+    const wa=`https://wa.me/?text=${encodeURIComponent(fname)}`;
+    if(/Android|iPhone/i.test(navigator.userAgent))window.open(wa,'_blank');
+    else{toast('אין תמיכה בשיתוף ישיר — הקובץ יורד, שתף ידנית','info');document.getElementById('dvm-download').click();}
+  };
+  new bootstrap.Modal(document.getElementById('docViewModal')).show();
+}
+function viewDoc(pid){openDocModal('crm_doc_'+pid,'crm_doc_meta_'+pid);}
+function delDoc(pid){
+  if(!confirm('למחוק את קובץ הפוליסה?'))return;
+  localStorage.removeItem('crm_doc_'+pid);localStorage.removeItem('crm_doc_meta_'+pid);
+  renderDocCur(pid);toast('קובץ נמחק');
+}
+function renderDocCur(pid){
+  const el=document.getElementById('p-doc-cur');if(!el)return;
+  const m=docMeta(pid);
+  if(!m){el.innerHTML='';return}
+  const sz=m.size<1024*1024?(m.size/1024).toFixed(0)+'KB':((m.size/1024/1024).toFixed(1))+'MB';
+  el.innerHTML=`<span class="badge bg-success"><i class="bi bi-file-earmark-check me-1"></i>${escHtml(m.name)} (${sz})</span>
+    <button type="button" class="btn btn-sm btn-outline-primary ba ms-1" onclick="openDocModal('crm_doc_${pid}','crm_doc_meta_${pid}')"><i class="bi bi-eye"></i></button>
+    <button type="button" class="btn btn-sm btn-outline-danger ba" onclick="delDoc(${pid})"><i class="bi bi-trash"></i></button>`;
+}
+function docBtn(pid){
+  const uploadBtn=`<button class="btn btn-sm btn-outline-secondary ba" onclick="quickUploadDoc(${pid})" title="העלה קובץ"><i class="bi bi-upload"></i></button>`;
+  let btns='';
+  // Car-specific docs
+  [['mkif','success','מקיף'],['hova','warning','חובה'],['sagrir','info','שגריר']].forEach(([s,col,lbl])=>{
+    if(localStorage.getItem('crm_doc_'+s+'_'+pid))
+      btns+=`<button class="btn btn-sm btn-${col} ba ms-1" style="font-size:10px;padding:2px 5px" onclick="openDocModal('crm_doc_${s}_${pid}','crm_doc_meta_${s}_${pid}')" title="${lbl}"><i class="bi bi-file-earmark-check-fill"></i> ${lbl}</button>`;
+  });
+  // Generic doc
+  const gm=docMeta(pid);
+  if(gm)btns+=`<button class="btn btn-sm btn-outline-primary ba ms-1" onclick="openDocModal('crm_doc_${pid}','crm_doc_meta_${pid}')" title="${escHtml(gm.name)}"><i class="bi bi-file-earmark-text-fill"></i></button>`;
+  if(!btns)btns=`<button class="btn btn-sm btn-outline-secondary ba ms-1" disabled title="אין קובץ מצורף"><i class="bi bi-file-earmark"></i></button>`;
+  return uploadBtn+btns;
+}
+function quickUploadDoc(pid){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='.pdf,.jpg,.jpeg,.png,.gif';
+  inp.onchange=async function(){
+    const file=inp.files[0];if(!file)return;
+    if(file.size>4*1024*1024){toast('הקובץ גדול מ-4MB — מקסימום 4MB','danger');return}
+    try{
+      const dataUrl=await readFileAsDataURL(file);
+      localStorage.setItem('crm_doc_'+pid,dataUrl);
+      localStorage.setItem('crm_doc_meta_'+pid,JSON.stringify({name:file.name,type:file.type,size:file.size}));
+      toast('קובץ הועלה ✓');
+      renderPolicies();
+    }catch(e){toast('שגיאה בהעלאה: '+e.message,'danger')}
+  };
+  inp.click();
+}
+
+/* ══════════════════════════════════════════════
+   CLIENT POLICIES POPUP
+══════════════════════════════════════════════ */
+async function showCPolicies(clientId,name){
+  document.getElementById('cp-title').textContent=`פוליסות — ${name}`;
+  document.getElementById('cp-add').onclick=()=>{bootstrap.Modal.getInstance(document.getElementById('cpModal'))?.hide();openPolicyModal(clientId)};
+  const ps=(await dbFindByIndex('policies','client_id',clientId)).filter(p=>p.is_active!==false);
+  if(!ps.length){document.getElementById('cp-body').innerHTML=`<div class="es"><i class="bi bi-file-x"></i><div>אין פוליסות</div></div>`;new bootstrap.Modal(document.getElementById('cpModal')).show();return}
+  document.getElementById('cp-body').innerHTML=`<div class="table-responsive"><table class="table table-hover">
+    <thead><tr><th>מ. פוליסה</th><th>סוג</th><th>חברה</th><th>מ.ר./כתובת/פרטי נכס</th><th>מתאריך</th><th>עד תאריך</th><th>פרמיה</th><th>סטטוס</th><th></th></tr></thead>
+    <tbody>${ps.map(p=>`<tr class="${rcls(p.renewal_date)}">
+      <td><span class="pn">${p.policy_number||'—'}</span></td><td>${pbadge(p.product_type)}</td>
+      <td>${p.insurance_company||'—'}</td>
+      <td style="max-width:200px;white-space:normal;font-size:12px">${identF(p)}${p.coverage_notes?'<br><small class="text-muted">'+p.coverage_notes+'</small>':''}</td>
+      <td>${fd(p.start_date)}</td><td><b>${fd(p.end_date)}</b></td><td>${fc(p.annual_premium)}</td>
+      <td>${renewalBadge(p)}</td>
+      <td class="d-flex gap-1">${docBtn(p.id)}<button class="btn btn-sm btn-outline-secondary ba" onclick="editPolicy(${p.id})"><i class="bi bi-pencil"></i></button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+  new bootstrap.Modal(document.getElementById('cpModal')).show();
+}
+
+/* ══════════════════════════════════════════════
+   FL PARSER  (תקן אלמנטרי ישראלי)
+══════════════════════════════════════════════ */
+const BRANCH_PROD={'038':'car','054':'car','085':'car','096':'car','100':'apartment','226':'apartment','266':'apartment','605':'apartment','210':'business','533':'business','851':'business'};
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function parseFL(buffer){
+  let text;
+  const encodings=['windows-1255','iso-8859-8','latin-1'];
+  for(const enc of encodings){
+    try{text=new TextDecoder(enc).decode(buffer);break}catch(e){}
+  }
+  if(!text)text=new TextDecoder('latin-1').decode(buffer);
+
+  // Split into parallel: text lines and byte-offset map for raw access
+  const rawBytes=buffer instanceof Uint8Array?buffer:new Uint8Array(buffer);
+  const allLines=text.split(/\r?\n/);
+
+  // Build byte-offset index for raw line bytes
+  const lineByteOffsets=[];
+  let bytePos=0;
+  for(const line of allLines){
+    lineByteOffsets.push(bytePos);
+    // windows-1255 is single-byte: 1 char = 1 byte (unlike UTF-8 where Hebrew = 2 bytes)
+    bytePos+=line.length;
+    if(bytePos<rawBytes.length){
+      if(rawBytes[bytePos]===0x0D&&rawBytes[bytePos+1]===0x0A)bytePos+=2;
+      else if(rawBytes[bytePos]===0x0A||rawBytes[bytePos]===0x0D)bytePos+=1;
+    }
+  }
+
+  // CORRECT FIELD POSITIONS (verified against actual FL file):
+  // 0-2:  '006' identifier
+  // 8-13:  agency code
+  // 14-23: policy number (10 digits)
+  // 26-28: branch code (038/085/266/605/851)
+  // 29-31: amendment number
+  // 35-36: record type (01/02/07/10/30)
+  // 37+:   record data
+
+  const groups={};
+  for(let i=0;i<allLines.length;i++){
+    const line=allLines[i];
+    if(line.length<38)continue;
+    if(!line.startsWith('006'))continue;
+    const policyNum=line.substring(14,24).trim();
+    if(!policyNum||!/\d{5}/.test(policyNum))continue;
+    const amendment=line.substring(29,32);
+    const recType=line.substring(35,37);
+    const data=line.substring(37);
+    const key=policyNum+'_'+amendment;
+    if(!groups[key])groups[key]={policyNum,amendment,branch:line.substring(26,29),recs:{},rawRecs:{}};
+    groups[key].recs[recType]=data;
+    const lineStart=lineByteOffsets[i]||0;
+    groups[key].rawRecs[recType]=rawBytes.slice(lineStart+37,lineStart+37+data.length);
+  }
+
+  const result=[];
+  for(const g of Object.values(groups)){
+    const p=buildFLPolicy(g);
+    if(p)result.push(p);
+  }
+
+  // Keep latest amendment per policy
+  const best={};
+  for(const p of result){
+    const k=p.policy_number;
+    if(!best[k]||p.amendment>best[k].amendment)best[k]=p;
+  }
+  const out=Object.values(best);
+  // Attach debug info
+  out._debug={totalLines:allLines.length,lines006:allLines.filter(l=>l.startsWith('006')).length,
+    preview:allLines.filter(l=>l.trim().length>0).slice(0,4).map(l=>l.substring(0,80))};
+  return out;
+}
+
+// Hebrew decoder — supports BOTH encodings found in Israeli FL files:
+//   CP862 / IBM-Hebrew-DOS : bytes 0x80-0x9A → U+05D0-U+05EA  (Harel, many insurers)
+//   windows-1255 / ISO-8859-8: bytes 0xE0-0xFA → U+05D0-U+05EA (some other files)
+function decodeHebrew1255(bytes,start,len){
+  const segments=[];
+  let cur='';
+  for(let i=start;i<start+len&&i<bytes.length;i++){
+    const b=bytes[i];
+    if(b>=0x80&&b<=0x9A){
+      // CP862 Hebrew (0x80=alef … 0x9A=tav)
+      cur+=String.fromCharCode(0x05D0+(b-0x80));
+    } else if(b>=0xE0&&b<=0xFA){
+      // windows-1255 / ISO-8859-8 Hebrew (0xE0=alef … 0xFA=tav)
+      cur+=String.fromCharCode(0x05D0+(b-0xE0));
+    } else if(b===0x20&&cur.length>0){
+      cur+=' ';
+    } else {
+      const trimmed=cur.trim();
+      if(trimmed.length>=2)segments.push(trimmed);
+      cur='';
+    }
+  }
+  const trimmed=cur.trim();
+  if(trimmed.length>=2)segments.push(trimmed);
+  return segments.join(' ').substring(0,80);
+}
+
+function parseYYMMDD(s){
+  if(!s||s.length<6)return null;
+  const yy=parseInt(s.substring(0,2)),mm=parseInt(s.substring(2,4)),dd=parseInt(s.substring(4,6));
+  const y=yy<50?2000+yy:1900+yy;
+  if(y<2020||y>2040||mm<1||mm>12||dd<1||dd>31)return null;
+  return `${y}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+}
+
+function buildFLPolicy(g){
+  const recs=g.recs;const rawRecs=g.rawRecs||{};
+  const product=BRANCH_PROD[g.branch]||'car';
+  const p={policy_number:g.policyNum,amendment:g.amendment,product_type:product,_debug:{recTypes:Object.keys(recs).join(','),branch:g.branch}};
+
+  // Record 01 — dates (FL format: YYMMDD, e.g. 250129 = 2025-01-29)
+  // Layout: [9 zeros][start_date][18 zeros][N count][N+1 date blocks...]
+  // Start is ALWAYS at data[9:15]. End = max valid date in the record that is AFTER start.
+  const r01=recs['01']||'';
+  // 1. Start date at fixed position 9
+  if(r01.length>=15){
+    const sd=parseYYMMDD(r01.substring(9,15));
+    if(sd)p.start_date=sd;
+  }
+  // 2. Find all valid dates in r01 via sliding window (handles variable N count)
+  const allR01Dates=[];
+  for(let i=0;i<=r01.length-6;i++){
+    const sub=r01.substring(i,i+6);
+    if(!/^\d{6}$/.test(sub))continue;
+    const d=parseYYMMDD(sub);
+    if(d)allR01Dates.push(d);
+  }
+  const uniqR01=[...new Set(allR01Dates)].sort();
+  if(!p.start_date&&uniqR01.length>=1)p.start_date=uniqR01[0];
+  // 3. End date = latest date that is strictly after start_date
+  if(p.start_date){
+    const after=uniqR01.filter(d=>d>p.start_date);
+    if(after.length>0)p.end_date=after[after.length-1];
+  }
+  p._debug.r01_start=r01.substring(9,15);
+  p._debug.r01_alldates=uniqR01.join(',');
+
+  // Record 02 — client: type byte + 9-digit ID + Hebrew name
+  const r02=recs['02']||'';
+  const r10=recs['10']||'';
+  const nameSource=r02||r10;
+  if(r02){
+    // Try data[1:10] first (standard position after type byte)
+    const rawId=r02.substring(1,10);
+    if(/^\d{9}$/.test(rawId))p.client_id_number=rawId;
+    else{
+      // Try data[0:9]
+      const rawId0=r02.substring(0,9);
+      if(/^\d{9}$/.test(rawId0))p.client_id_number=rawId0;
+      else{const idm=r02.match(/\d{9}/);if(idm)p.client_id_number=idm[0]}
+    }
+  }
+  // Extract Hebrew segments from raw bytes — handles CP862 (Harel) and windows-1255
+  // FL files store Hebrew in VISUAL DOS order → detect by final-letter at word start → reverse each word
+  {
+    const rb=rawRecs['02']||rawRecs['10'];
+    if(rb){
+      // Collect all Hebrew "runs" separated by non-Hebrew, non-space bytes
+      const runs=[];
+      let cur='',inRun=false;
+      for(let i=10;i<rb.length;i++){
+        const b=rb[i];
+        if(b>=0x80&&b<=0x9A){cur+=String.fromCharCode(0x05D0+(b-0x80));inRun=true;}
+        else if(b>=0xE0&&b<=0xFA){cur+=String.fromCharCode(0x05D0+(b-0xE0));inRun=true;}
+        else if(b===0x20&&inRun){cur+=' ';}
+        else{const t=cur.trim();if(t.length>=2)runs.push(t);cur='';inRun=false;}
+      }
+      const t=cur.trim();if(t.length>=2)runs.push(t);
+
+      // FL files (CP862 / visual DOS order) always store each word reversed → always reverse every word
+      const fixV=s=>s?s.split(/\s+/).map(w=>w.split('').reverse().join('')).join(' '):s;
+
+      if(runs.length>=1) p.client_name=fixV(runs[0]).substring(0,60);
+
+      if(runs.length>=2){
+        // Second run = address. Format: "רחוב   עיר" — split on 2+ spaces
+        const addrParts=runs[1].split(/\s{2,}/).map(s=>s.trim()).filter(s=>s.length>=2);
+        if(addrParts.length>=2){
+          p.client_street=fixV(addrParts.slice(0,addrParts.length-1).join(' ')).substring(0,50);
+          p.client_city  =fixV(addrParts[addrParts.length-1]).substring(0,30);
+        }else if(addrParts.length===1){
+          p.client_city=fixV(addrParts[0]).substring(0,30);
+        }
+      }
+    }
+  }
+  p._debug.r02_len=r02.length;
+  p._debug.r02_hex=rawRecs['02']?Array.from(rawRecs['02'].slice(0,30)).map(b=>b.toString(16).padStart(2,'0')).join(' '):'';
+  if(!p.client_name&&p.client_id_number)p.client_name=`לקוח ${p.client_id_number}`;
+
+  // Record 07 — vehicle plate
+  // Layout: [18 zeros][8-char code][3-char][2 zeros][plate 7-8 digits]...
+  // Plate starts at ~offset 31; use [1-9]\d{6,7} to skip leading-zero sequences
+  const r07=recs['07']||'';
+  if(r07&&product==='car'){
+    const area=r07.length>29?r07.substring(29):r07;
+    const pm=[...area.matchAll(/[1-9]\d{6,7}/g)];
+    if(pm.length)p.vehicle_number=pm[0][0];
+  }
+
+  // Record 30 — premium
+  // Structure: [sub-type:3][zeros:8][annual_premium_agorot:5][coverage details...]
+  // Annual gross premium is at fixed position 11-15 (5 digits, in agorot)
+  const r30=recs['30']||'';
+  if(r30&&r30.length>=16){
+    const premStr=r30.substring(11,16);
+    const premVal=parseInt(premStr)||0;
+    if(premVal>0)p.premium=premVal/100;
+    // Fallback: scan for first reasonable amount if fixed field gave 0
+    if(!p.premium){
+      const fallback=(r30.substring(11).match(/\d{5,6}/g)||[]);
+      for(const n of fallback){const v=parseInt(n)/100;if(v>=100&&v<=50000){p.premium=v;break}}
+    }
+  }
+
+  return p.policy_number?p:null;
+}
+
+/* ══════════════════════════════════════════════
+   FL IMPORT
+══════════════════════════════════════════════ */
+async function importFL(input){
+  const file=input.files[0];if(!file)return;
+  const res=document.getElementById('fl-res');
+  res.innerHTML='<div class="text-muted small"><div class="spinner-border spinner-border-sm me-2"></div>מייבא קובץ FL...</div>';
+  try{
+    const buf=new Uint8Array(await file.arrayBuffer());
+    const parsed=parseFL(buf);
+    const dbg=parsed._debug||{};
+    if(!parsed.length){
+      res.innerHTML=`<div class="alert alert-warning small">
+        ⚠️ לא נמצאו פוליסות בקובץ.<br>
+        שורות: ${dbg.totalLines||0} | שורות '006': ${dbg.lines006||0}<br>
+        <details open><summary style="cursor:pointer">תוכן ראשוני (לאבחון)</summary>
+        <pre style="font-size:10px;direction:ltr;text-align:left;white-space:pre-wrap;word-break:break-all">${(dbg.preview||[]).map(escHtml).join('\n')}</pre>
+        </details></div>`;
+      input.value='';return;
+    }
+    let imported=0,skipped=0,updated=0,found=0;
+    const doUpdate=document.getElementById('fl-update-existing')?.checked;
+    const allPoliciesNow=await dbAll('policies');
+    const debugSamples=[];
+    for(const p of parsed){
+      found++;
+      if(!p.policy_number){skipped++;continue}
+      const dbg=p._debug||{};
+      if(debugSamples.length<5)debugSamples.push({
+        pol:p.policy_number,branch:dbg.branch,recTypes:dbg.recTypes,
+        r01s:dbg.r01_start,alldates:dbg.r01_alldates,
+        start:p.start_date,end:p.end_date,
+        name:p.client_name,id:p.client_id_number,
+        r02hex:dbg.r02_hex,prem:p.premium
+      });
+      let clientId=null;
+      let existingClient=null;
+      if(p.client_id_number){
+        const ex=await dbFindByIndex('clients','id_number',p.client_id_number);
+        if(ex.length){clientId=ex[0].id;existingClient=ex[0];}
+      }
+      if(!clientId){
+        const name=p.client_name||`לקוח ${p.client_id_number||p.policy_number}`;
+        clientId=await dbPut('clients',{id_number:p.client_id_number||'',name,address:p.client_street||'',city:p.client_city||'',created_at:new Date().toISOString()});
+      } else if(existingClient&&p.client_name){
+        // Always update name/address/city from FL — FL is the authoritative source
+        await dbPut('clients',{...existingClient,
+          name:p.client_name,
+          address:p.client_street||existingClient.address||'',
+          city:p.client_city||existingClient.city||''
+        });
+      }
+      const existPol=allPoliciesNow.find(x=>x.policy_number===p.policy_number);
+      if(existPol){
+        if(doUpdate){
+          await dbPut('policies',{...existPol,start_date:p.start_date||existPol.start_date,end_date:p.end_date||existPol.end_date,renewal_date:p.end_date||existPol.renewal_date,annual_premium:p.premium||existPol.annual_premium});
+          updated++;
+        }else{skipped++;continue}
+      }else{
+        await dbPut('policies',{client_id:clientId,policy_number:p.policy_number,product_type:p.product_type,start_date:p.start_date||null,end_date:p.end_date||null,renewal_date:p.end_date||null,annual_premium:p.premium||null,vehicle_number:p.vehicle_number||null,is_active:true,created_at:new Date().toISOString()});
+        imported++;
+      }
+    }
+    clients=await dbAll('clients');policies=(await dbAll('policies')).filter(p=>p.is_active!==false);
+    const debugHtml=`<details><summary style="cursor:pointer;font-size:11px">🔍 אבחון (${debugSamples.length} פוליסות ראשונות)</summary>
+      <div style="font-size:10px;direction:ltr;text-align:left;font-family:monospace;white-space:pre;overflow:auto;max-height:200px;background:#f8f8f8;padding:8px;border-radius:4px;margin-top:4px">
+${debugSamples.map(d=>`pol=${d.pol} branch=${d.branch} recs=[${d.recTypes}]
+  r01[9:15]=${d.r01s} | all_dates=[${d.alldates||''}]
+  → start=${d.start||'NONE'} end=${d.end||'NONE'}
+  name: ${d.name||'NONE'} | id: ${d.id||'?'} | prem: ${d.prem||0}
+  r02_hex: ${d.r02hex||'(empty)'}
+`).join('\n')}</div></details>`;
+    res.innerHTML=`<div class="alert alert-success py-2 small">✅ נמצאו ${found} פוליסות — יובאו ${imported}${updated?' עודכנו '+updated:''}${skipped?' דולגו '+skipped:''}</div>${debugHtml}`;
+    if(curSection==='dashboard')loadDash();
+  }catch(e){res.innerHTML=`<div class="alert alert-danger py-2 small">❌ שגיאה: ${e.message}</div>`}
+  input.value='';
+}
+
+/* ══════════════════════════════════════════════
+   EXCEL IMPORT
+══════════════════════════════════════════════ */
+function detectProduct(branchVal, propertyVal){
+  const b=String(branchVal||'').trim();
+  const bv=b.toLowerCase();
+  if(bv.includes('דירה')||bv.includes('מבנה')||bv.includes('תכולה'))return'apartment';
+  if(bv.includes('עסק')||bv.includes('business'))return'business';
+  if(bv.includes('רכב')||bv.includes('מקיף')||bv.includes('חובה')||bv.includes('car'))return'car';
+  // numeric codes
+  const codes={'038':'car','054':'car','085':'car','096':'car','100':'apartment','226':'apartment','266':'apartment','605':'apartment','210':'business','533':'business','851':'business'};
+  if(codes[b])return codes[b];
+  // fallback by property details
+  const pv=String(propertyVal||'').toLowerCase();
+  if(pv.includes('דירה')||pv.includes('קומה')||pv.includes('מבנה'))return'apartment';
+  if(pv.includes('רכב')||pv.match(/\d{7,8}/))return'car';
+  return'apartment'; // most common in this file
+}
+
+function xlCol(row,keys){
+  for(const k of keys){
+    const v=row[k];
+    if(v!==undefined&&v!==null&&String(v).trim()!==''&&String(v).trim()!=='nan'&&String(v).trim()!=='NaN')
+      return String(v).trim();
+  }
+  // fuzzy: normalized key (strip spaces/underscores)
+  const norm=s=>String(s).replace(/[\s_\-\.]/g,'').toLowerCase();
+  const nk=keys.map(norm);
+  for(const rk of Object.keys(row)){
+    if(nk.includes(norm(rk))){
+      const v=row[rk];
+      if(v!==undefined&&v!==null&&String(v).trim()!==''&&String(v).trim()!=='nan')return String(v).trim();
+    }
+  }
+  return null;
+}
+
+// Like xlCol but returns raw value (Date/number) without stringifying — for date fields
+function xlColRaw(row,keys){
+  // strip spaces, underscores, dots, BOM, RTL/LTR marks
+  const norm=s=>String(s).replace(/[\s_\-\.\u200e\u200f\ufeff\u200b\u202a-\u202e]/g,'').toLowerCase();
+  // exact match first
+  for(const k of keys){
+    const v=row[k];
+    if(v!==undefined&&v!==null&&v!=='')return v;
+  }
+  // normalized match
+  const nk=keys.map(norm);
+  for(const rk of Object.keys(row)){
+    if(nk.includes(norm(rk))){
+      const v=row[rk];
+      if(v!==undefined&&v!==null&&v!=='')return v;
+    }
+  }
+  return null;
+}
+
+function xlDate(s){
+  if(!s||s==='nan'||s==='NaN'||s==='')return null;
+  // JS Date
+  if(s instanceof Date){if(isNaN(s.getTime()))return null;return s.toISOString().slice(0,10)}
+  // ISO string
+  if(typeof s==='string'&&/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);
+  // Excel serial (number)
+  if(typeof s==='number'&&!isNaN(s)&&s>1000){
+    const d=new Date(Math.round((s-25569)*86400*1000));
+    return d.toISOString().slice(0,10);
+  }
+  // Israeli DD/MM/YYYY or DD.MM.YYYY
+  if(typeof s==='string'){
+    const clean=s.replace(/\./g,'/').trim();
+    const parts=clean.split('/');
+    if(parts.length===3){
+      const[a,b,c]=[parseInt(parts[0]),parseInt(parts[1]),parseInt(parts[2])];
+      if(!isNaN(a)&&!isNaN(b)&&!isNaN(c)){
+        const y=c>1900?c:(c<50?2000+c:1900+c);
+        if(a>=1&&a<=31&&b>=1&&b<=12)return`${y}-${String(b).padStart(2,'0')}-${String(a).padStart(2,'0')}`;
+      }
+    }
+  }
+  return null;
+}
+
+async function importExcel(input){
+  const file=input.files[0];if(!file)return;
+  const res=document.getElementById('xl-res');
+  res.innerHTML='<div class="text-muted small"><div class="spinner-border spinner-border-sm me-2"></div>מייבא קובץ Excel...</div>';
+  try{
+    const overwrite=document.getElementById('xl-overwrite').checked;
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array',cellDates:true});
+    let imported=0,updated=0,skipped=0;
+    let debugInfo='';
+    for(const shName of wb.SheetNames){
+      const ws=wb.Sheets[shName];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
+      if(rows.length&&!debugInfo){
+        const r0=rows[0];
+        const keys=Object.keys(r0);
+        const norm=s=>String(s).replace(/[\s_\-\.]/g,'').toLowerCase();
+        const endKey=keys.find(k=>norm(k)===norm('תאריך סיום')||norm(k)===norm('תאריך_סיום')||norm(k)===norm('עד תאריך')||norm(k)==='end_date'||norm(k)===norm('סיום'));
+        const startKey=keys.find(k=>norm(k)===norm('תאריך תחילה')||norm(k)===norm('תאריך התחלה')||norm(k)==='start_date');
+        const endVal=endKey?r0[endKey]:'לא נמצא';
+        const startVal=startKey?r0[startKey]:'לא נמצא';
+        debugInfo=`עמודות: ${keys.join(' | ')}<br>תחילה: <b>${escHtml(String(startVal))}</b> | סיום: <b>${escHtml(String(endVal))}</b>`;
+      }
+      for(const row of rows){
+        // Extract fields using exact + fuzzy column names
+        const name=xlCol(row,['שם לקוח','שם','name','שם מלא','לקוח']);
+        if(!name||name.length<2)continue;
+        const idnum=xlCol(row,['תז לקוח','ת.ז','ת.ז.','תעודת זהות','id_number','מספר זהות','תז']);
+        const phone=xlCol(row,['טלפון','נייד','phone','טל','פלאפון']);
+        const city=xlCol(row,['עיר','city']);
+        const addr=xlCol(row,['כתובת','address']);
+        const polNum=xlCol(row,['מספר פוליסה','פוליסה','policy_number','מ. פוליסה','מספר_פוליסה']);
+        const branch=xlCol(row,['ענף ביטוח','ענף','branch','סוג ביטוח','ענף_ביטוח']);
+        const propDetails=xlCol(row,['פרטי הנכס המבוטח','פרטי נכס','property','נכס','כתובת נכס','פרטי_הנכס_המבוטח']);
+        const company=xlCol(row,['חברה','חברת ביטוח','company','חברת_ביטוח']);
+        const startRaw=xlColRaw(row,['תאריך תחילה','תאריך התחלה','מתאריך','start_date','תחילה']);
+        const endRaw=xlColRaw(row,['תאריך סיום','תאריך_סיום','עד תאריך','end_date','חידוש','סיום']);
+        const premRaw=xlCol(row,['פרמיה נטו','פרמיה','premium','פרמיה שנתית','פרמיה_נטו']);
+        const start=xlDate(startRaw);
+        const end=xlDate(endRaw);
+        const prem=parseFloat(String(premRaw||'').replace(/,/g,''))||null;
+        const prod=detectProduct(branch,propDetails);
+
+        // Find/create client
+        let clientId=null;
+        const idStr=idnum?String(idnum).replace(/\.0$/,'').trim():'';
+        if(idStr){
+          const ex=await dbFindByIndex('clients','id_number',idStr);
+          if(ex.length)clientId=ex[0].id;
+        }
+        if(!clientId){
+          clientId=await dbPut('clients',{id_number:idStr,name,phone:phone||'',city:city||'',address:addr||'',created_at:new Date().toISOString()});
+        }
+
+        // Duplicate policy check
+        const polNumStr=polNum?String(polNum).replace(/\.0$/,'').trim():null;
+        if(polNumStr){
+          const allP=await dbAll('policies');
+          const existing=allP.find(x=>x.policy_number===polNumStr);
+          if(existing){
+            if(overwrite){
+              // Update dates/premium only, keep renewal status/notes
+              existing.start_date=start||existing.start_date;
+              existing.end_date=end||existing.end_date;
+              existing.renewal_date=end||existing.renewal_date;
+              existing.annual_premium=prem!=null?prem:existing.annual_premium;
+              existing.product_type=prod||existing.product_type;
+              await dbPut('policies',existing);
+              updated++;
+            } else {
+              skipped++;
+            }
+            continue;
+          }
+        }
+
+        // Build policy object based on product type
+        const policyObj={
+          client_id:clientId,
+          policy_number:polNumStr||null,
+          product_type:prod,
+          insurance_company:company||null,
+          start_date:start||null,
+          end_date:end||null,
+          renewal_date:end||null,
+          annual_premium:prem,
+          is_active:true,
+          created_at:new Date().toISOString()
+        };
+
+        // Map property details
+        if(prod==='apartment'&&propDetails){
+          policyObj.property_address=propDetails;
+          policyObj.coverage_notes=propDetails;
+        } else if(prod==='car'&&propDetails){
+          // Try to extract vehicle number
+          const vnum=propDetails.match(/\d{7,8}/);
+          if(vnum)policyObj.vehicle_number=vnum[0];
+          policyObj.coverage_notes=propDetails;
+        } else if(prod==='business'&&propDetails){
+          policyObj.business_address=propDetails;
+          policyObj.coverage_notes=propDetails;
+        }
+
+        await dbPut('policies',policyObj);
+        imported++;
+      }
+    }
+    clients=await dbAll('clients');
+    policies=(await dbAll('policies')).filter(p=>p.is_active!==false);
+    res.innerHTML=`<div class="alert alert-success py-2 small">✅ יובאו ${imported} חדשות${updated?` | עודכנו ${updated}`:''} (דולגו: ${skipped})</div>`+
+      (debugInfo?`<details class="mt-1"><summary class="small text-muted" style="cursor:pointer">מידע ניפוי שגיאות</summary><div class="small mt-1" style="direction:ltr;text-align:left;word-break:break-all">${debugInfo}</div></details>`:'');
+    if(curSection==='dashboard')loadDash();
+  }catch(e){
+    res.innerHTML=`<div class="alert alert-danger py-2 small">❌ שגיאה: ${e.message}<br><small>${e.stack?.slice(0,200)||''}</small></div>`;
+    console.error(e);
+  }
+  input.value='';
+}
+
+// Drag-and-drop
+['fl-inp','xl-inp'].forEach(inputId=>{
+  const zoneId=inputId==='fl-inp'?'fl-res':'xl-res';
+  const zone=document.querySelector(`[onclick*="${inputId}"]`);
+  if(!zone)return;
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.style.borderColor='#2563eb'});
+  zone.addEventListener('dragleave',()=>{zone.style.borderColor=''});
+  zone.addEventListener('drop',e=>{
+    e.preventDefault();zone.style.borderColor='';
+    const inp=document.getElementById(inputId);
+    const dt=new DataTransfer();dt.items.add(e.dataTransfer.files[0]);inp.files=dt.files;
+    inp.dispatchEvent(new Event('change'));
+  });
+});
+
+/* ══════════════════════════════════════════════
+   CLEAR ALL DATA
+══════════════════════════════════════════════ */
+function clearAllData(){
+  if(!confirm('למחוק את כל הלקוחות, הפוליסות והמסמכים?\nלא ניתן לשחזר!'))return;
+  // Remove all crm_ keys from localStorage
+  const keys=Object.keys(localStorage).filter(k=>k.startsWith('crm_'));
+  keys.forEach(k=>localStorage.removeItem(k));
+  _stores.clients=[];_stores.policies=[];
+  clients=[];policies=[];
+  toast('כל הנתונים נמחקו','warning');
+  loadDash();
+}
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+openDB().then(()=>loadDash()).catch(e=>alert('שגיאה: '+e));
+</script>
+</body>
+</html>
