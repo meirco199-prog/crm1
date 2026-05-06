@@ -1,6 +1,6 @@
 {
-  "name": "CRM ביטוח אלמנטרי",
-  "short_name": "CRM ביטוח",
+  "name": "אלמנטרי",
+  "short_name": "אלמנטרי",
   "description": "ניהול לקוחות ופוליסות ביטוח — סנכרון ענן",
   "start_url": "/crm1/",
   "scope": "/crm1/",
