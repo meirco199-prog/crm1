@@ -56,6 +56,61 @@ label{font-weight:600;font-size:13px;color:#374151}
 .renew-btns{display:flex;flex-direction:column;gap:4px;min-width:90px}
 .renew-btns button{font-size:11px;padding:4px 8px;white-space:nowrap}
 .renewal-note{font-size:11px;color:#64748b;font-style:italic;margin-top:3px}
+
+/* ══ MOBILE LAYOUT ══ */
+@media(max-width:767px){
+  #sidebar{display:none}
+  #main{margin-right:0;padding-bottom:70px}
+  #mob-topbar{display:flex!important}
+  #mob-bottomnav{display:flex!important}
+  #mob-fab{display:flex!important}
+  .ph{display:none}
+  .ct{padding:12px}
+  /* כרטיסיות פוליסה במובייל */
+  .mob-card{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-right:4px solid #ddd;position:relative}
+  .mob-card.danger{border-right-color:#ef4444}
+  .mob-card.warning{border-right-color:#f97316}
+  .mob-card.ok{border-right-color:#22c55e}
+  .mob-card-name{font-size:16px;font-weight:700;color:#1e293b}
+  .mob-card-sub{font-size:12px;color:#64748b;margin-top:2px}
+  .mob-card-btns{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .mob-card-btns .btn{font-size:12px;padding:5px 12px}
+  /* הסתר טבלאות במובייל */
+  .table-responsive{display:none}
+  /* הסתר toolbar של טבלה */
+  .tb{display:none}
+  /* הצג div כרטיסיות */
+  .mob-list{display:block!important}
+  /* הסתר bulk bar במובייל */
+  #bulk-bar,#pbulk-bar{display:none!important}
+  /* כרטיסי לקוחות */
+  .mob-client-card{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;align-items:center;gap:12px}
+  .mob-client-avatar{width:44px;height:44px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+  .mob-client-info{flex:1;min-width:0}
+  .mob-client-name{font-weight:700;font-size:15px;color:#1e293b}
+  .mob-client-sub{font-size:12px;color:#64748b;margin-top:2px}
+}
+@media(min-width:768px){
+  #mob-topbar,#mob-bottomnav,#mob-fab{display:none!important}
+  .mob-list{display:none!important}
+}
+/* טופ-בר מובייל */
+#mob-topbar{display:none;position:fixed;top:0;right:0;left:0;height:56px;background:var(--brand);color:#fff;z-index:200;align-items:center;padding:0 16px;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+#mob-topbar .brand-txt{flex:1;font-weight:700;font-size:15px}
+#mob-topbar .sync-indicator{display:flex;align-items:center;gap:5px;font-size:11px;opacity:.8}
+/* ניווט תחתון */
+#mob-bottomnav{display:none;position:fixed;bottom:0;right:0;left:0;height:60px;background:#fff;border-top:1px solid #e2e8f0;z-index:200;align-items:stretch;box-shadow:0 -2px 10px rgba(0,0,0,.08)}
+#mob-bottomnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;color:#64748b;text-decoration:none;padding:6px 0;transition:.15s;position:relative}
+#mob-bottomnav a.active{color:var(--accent)}
+#mob-bottomnav a i{font-size:20px}
+#mob-bottomnav a .mbadge{position:absolute;top:4px;right:50%;margin-right:-18px;background:#ef4444;color:#fff;font-size:9px;border-radius:10px;padding:1px 5px}
+/* כפתור + מרחף */
+#mob-fab{display:none;position:fixed;bottom:74px;left:16px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;font-size:26px;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(37,99,235,.5);z-index:200;border:none;cursor:pointer}
+/* פדינג לתוכן מתחת לטופ-בר */
+@media(max-width:767px){
+  #main{padding-top:56px}
+  .sec.active{min-height:calc(100vh - 126px)}
+}
 </style>
 </head>
 <body>
@@ -76,6 +131,39 @@ label{font-weight:600;font-size:13px;color:#374151}
   </div>
   <div class="sf">גרסה 2.0 ☁ | ביטוח אלמנטרי</div>
 </div>
+
+<!-- ═══ MOBILE TOP BAR ═══ -->
+<div id="mob-topbar">
+  <i class="bi bi-shield-check" style="font-size:22px"></i>
+  <span class="brand-txt">CRM ביטוח</span>
+  <div class="sync-indicator">
+    <span id="mob-sync-dot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;flex-shrink:0"></span>
+    <span id="mob-sync-lbl">ענן</span>
+  </div>
+</div>
+
+<!-- ═══ MOBILE BOTTOM NAV ═══ -->
+<div id="mob-bottomnav">
+  <a href="#" onclick="nav('dashboard');mobNavActive('dashboard');return false" id="mn-dashboard" class="active">
+    <i class="bi bi-speedometer2"></i><span>בקרה</span>
+  </a>
+  <a href="#" onclick="nav('alerts');mobNavActive('alerts');return false" id="mn-alerts">
+    <i class="bi bi-bell-fill"></i><span>התראות</span>
+    <span id="mn-abadge" class="mbadge d-none"></span>
+  </a>
+  <a href="#" onclick="nav('clients');mobNavActive('clients');return false" id="mn-clients">
+    <i class="bi bi-people-fill"></i><span>לקוחות</span>
+  </a>
+  <a href="#" onclick="nav('policies');mobNavActive('policies');return false" id="mn-policies">
+    <i class="bi bi-file-earmark-text-fill"></i><span>פוליסות</span>
+  </a>
+  <a href="#" onclick="nav('import');mobNavActive('import');return false" id="mn-import">
+    <i class="bi bi-cloud-upload-fill"></i><span>ייבוא</span>
+  </a>
+</div>
+
+<!-- ═══ MOBILE FAB ═══ -->
+<button id="mob-fab" onclick="mobFabAction()"><i class="bi bi-plus-lg"></i></button>
 
 <!-- MAIN -->
 <div id="main">
@@ -141,6 +229,12 @@ label{font-weight:600;font-size:13px;color:#374151}
         <tbody id="ctbody"></tbody>
       </table>
     </div>
+    <!-- חיפוש מובייל לקוחות -->
+    <div class="mob-list" style="display:none;padding:8px 8px 0">
+      <input type="text" class="form-control form-control-sm" placeholder="🔍 חיפוש לקוח..." oninput="document.getElementById('csrch').value=this.value;renderClients()" style="border-radius:20px;background:#f8fafc">
+    </div>
+    <!-- כרטיסיות מובייל לקוחות -->
+    <div class="mob-list" id="cmob-list" style="display:none;padding:8px"></div>
   </div></div>
 </section>
 
@@ -176,6 +270,15 @@ label{font-weight:600;font-size:13px;color:#374151}
         <tbody id="ptbody"></tbody>
       </table>
     </div>
+    <!-- חיפוש מובייל פוליסות -->
+    <div class="mob-list" style="padding:8px 8px 0;display:flex;gap:6px;flex-wrap:wrap">
+      <input type="text" class="form-control form-control-sm" placeholder="🔍 חיפוש פוליסה..." oninput="document.getElementById('psrch').value=this.value;renderPolicies()" style="flex:1;border-radius:20px;background:#f8fafc;min-width:160px">
+      <select class="form-select form-select-sm" style="width:auto;border-radius:20px" onchange="document.getElementById('pflt').value=this.value;renderPolicies()">
+        <option value="">כל הסוגים</option><option value="car">🚗 רכב</option><option value="apartment">🏠 דירה</option><option value="business">🏢 עסק</option>
+      </select>
+    </div>
+    <!-- כרטיסיות מובייל פוליסות -->
+    <div class="mob-list" id="pmob-list" style="display:none;padding:8px"></div>
   </div></div>
 </section>
 
@@ -561,8 +664,12 @@ function openDB(){
       const ok=snap.val();
       const dot=document.getElementById('sync-dot');
       const lbl=document.getElementById('sync-lbl');
+      const mdot=document.getElementById('mob-sync-dot');
+      const mlbl=document.getElementById('mob-sync-lbl');
       if(dot)dot.style.background=ok?'#22c55e':'#ef4444';
       if(lbl)lbl.textContent=ok?'מסונכרן ☁':'לא מחובר ⚠';
+      if(mdot)mdot.style.background=ok?'#22c55e':'#ef4444';
+      if(mlbl)mlbl.textContent=ok?'מסונכרן':'לא מחובר';
     });
   });
 }
@@ -606,7 +713,8 @@ function nav(s){
   document.querySelectorAll('.sec').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('#sidebar nav a').forEach(x=>x.classList.remove('active'));
   document.getElementById('sec-'+s).classList.add('active');
-  document.getElementById('n-'+s).classList.add('active');
+  const sideEl=document.getElementById('n-'+s);if(sideEl)sideEl.classList.add('active');
+  mobNavActive(s);
   curSection=s;
   if(s==='dashboard')loadDash();
   else if(s==='alerts')loadAlerts();
@@ -781,7 +889,9 @@ async function loadDash(){
   document.getElementById('s5').textContent=overdue.length;
   const bc=overdue.length+nmP.length;
   const badge=document.getElementById('abadge');
-  if(bc>0){badge.textContent=bc;badge.classList.remove('d-none')}else badge.classList.add('d-none');
+  const mbadge=document.getElementById('mn-abadge');
+  if(bc>0){badge.textContent=bc;badge.classList.remove('d-none');if(mbadge){mbadge.textContent=bc;mbadge.classList.remove('d-none');}}
+  else{badge.classList.add('d-none');if(mbadge)mbadge.classList.add('d-none');}
   renderAlertRows('d-overdue',overdue,'danger');
   renderAlertRows('d-nextmonth',nmP,'info');
 }
@@ -886,6 +996,7 @@ let _selClients=new Set(); // IDs נבחרים לפעולת מחיקה מרוב�
 async function renderClients(){
   if(!clients.length)clients=await dbAll('clients');
   if(!policies.length)policies=(await dbAll('policies')).filter(p=>p.is_active!==false);
+  if(window.innerWidth<768){renderClientsMobile();return;}
   const q=(document.getElementById('csrch').value||'').trim().toLowerCase();
   const list=q?clients.filter(c=>[c.name,c.id_number,c.phone,c.address,c.city].some(v=>v&&v.toString().toLowerCase().includes(q))):clients;
   const tbody=document.getElementById('ctbody');
@@ -1059,6 +1170,7 @@ async function delClient(id,name){
 async function renderPolicies(){
   if(!clients.length)clients=await dbAll('clients');
   policies=(await dbAll('policies')).filter(p=>p.is_active!==false);
+  if(window.innerWidth<768){renderPoliciesMobile();return;}
   const q=(document.getElementById('psrch').value||'').trim().toLowerCase();
   const flt=document.getElementById('pflt').value;
   let list=policies;
@@ -1137,6 +1249,131 @@ async function deleteSelectedPolicies(){
   toast(`${ids.length} פוליסות נמחקו ✓`);
   renderPolicies();if(curSection==='dashboard')loadDash();
 }
+
+/* ══════════════════════════════════════════════
+   MOBILE CARD RENDERERS
+══════════════════════════════════════════════ */
+function mobUrgencyCls(rd){
+  if(!rd)return'ok';
+  const diff=Math.floor((new Date(rd)-new Date())/86400000);
+  if(diff<0)return'danger';
+  if(diff<=14)return'warning';
+  return'ok';
+}
+function mobUrgencyLabel(rd){
+  if(!rd)return'';
+  const diff=Math.floor((new Date(rd)-new Date())/86400000);
+  if(diff<0)return`<span style="color:#ef4444;font-size:11px;font-weight:700">⚠ פג תוקף לפני ${Math.abs(diff)} ימים</span>`;
+  if(diff===0)return`<span style="color:#f97316;font-size:11px;font-weight:700">⚠ מסתיים היום!</span>`;
+  if(diff<=14)return`<span style="color:#f97316;font-size:11px;font-weight:700">⚠ ${diff} ימים לסיום</span>`;
+  if(diff<=60)return`<span style="color:#2563eb;font-size:11px">${diff} ימים לסיום</span>`;
+  return'';
+}
+
+async function renderClientsMobile(){
+  const q=(document.getElementById('csrch').value||'').trim().toLowerCase();
+  const list=q?clients.filter(c=>[c.name,c.id_number,c.phone,c.address,c.city].some(v=>v&&v.toString().toLowerCase().includes(q))):clients;
+  const el=document.getElementById('cmob-list');
+  if(!el)return;
+  if(!list.length){el.innerHTML='<div class="es py-4"><i class="bi bi-person-x"></i><div>אין לקוחות</div></div>';return;}
+  el.innerHTML=list.map(c=>{
+    const pc=policies.filter(p=>p.client_id===c.id).length;
+    const letter=(c.name||'?')[0].toUpperCase();
+    const isFallback=c.name&&/^לקוח\s*\d/.test(c.name);
+    const nameStyle=isFallback?'color:#f97316':'color:#1e293b';
+    const safeName=(c.name||'').replace(/'/g,"\\'");
+    const carPolicies=policies.filter(p=>p.client_id===c.id&&p.product_type==='car'&&p.vehicle_number);
+    const platesHtml=carPolicies.length?`<div style="font-size:11px;color:#2563eb;margin-top:2px">${carPolicies.map(p=>`🚗 ${fmtPlate(p.vehicle_number)}`).join(' | ')}</div>`:'';
+    return`<div class="mob-client-card">
+      <div class="mob-client-avatar">${letter}</div>
+      <div class="mob-client-info">
+        <div class="mob-client-name" style="${nameStyle}">${c.name||'ללא שם'}</div>
+        <div class="mob-client-sub">${[c.id_number,c.city].filter(Boolean).join(' · ')||'ללא פרטים'}</div>
+        ${platesHtml}
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          ${c.phone?`<a href="tel:${c.phone}" class="btn btn-sm btn-outline-success" style="font-size:11px;padding:3px 10px"><i class="bi bi-telephone-fill me-1"></i>${c.phone}</a>`:''}
+          <span class="badge bg-primary" onclick="showCPolicies(${c.id},'${safeName}')" style="cursor:pointer;font-size:11px">${pc} פוליסות</span>
+          <button class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:3px 10px" onclick="openClientProfile(${c.id})"><i class="bi bi-person-circle me-1"></i>פרופיל</button>
+          <button class="btn btn-sm btn-outline-secondary" style="font-size:11px;padding:3px 8px" onclick="openClientModal(${c.id})"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger" style="font-size:11px;padding:3px 8px" onclick="delClient(${c.id},'${safeName}')"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function renderPoliciesMobile(){
+  const q=(document.getElementById('psrch').value||'').trim().toLowerCase();
+  const flt=document.getElementById('pflt').value;
+  let list=policies;
+  if(flt)list=list.filter(p=>p.product_type===flt);
+  if(q)list=list.filter(p=>{const c=clients.find(x=>x.id===p.client_id)||{};return[c.name,p.policy_number,p.vehicle_number,p.property_address,p.business_name,p.coverage_notes].some(v=>v&&v.toString().toLowerCase().includes(q))});
+  list.sort((a,b)=>(a.renewal_date||'9').localeCompare(b.renewal_date||'9'));
+  const el=document.getElementById('pmob-list');
+  if(!el)return;
+  if(!list.length){el.innerHTML='<div class="es py-4"><i class="bi bi-file-x"></i><div>אין פוליסות</div></div>';return;}
+  const COLOR_BORDER={danger:'#ef4444',warning:'#f97316',ok:'#22c55e'};
+  el.innerHTML=list.map(p=>{
+    const c=clients.find(x=>x.id===p.client_id)||{};
+    const safeCN=(c.name||'').replace(/'/g,"\\'");
+    const urg=mobUrgencyCls(p.renewal_date||p.end_date);
+    const urgLabel=mobUrgencyLabel(p.renewal_date||p.end_date);
+    const clrKey=getRowColor(p.id);
+    const clrData=ROW_COLORS[clrKey]||{};
+    const borderClr=clrData.border||COLOR_BORDER[urg]||'#ddd';
+    const bgClr=clrData.bg||'#fff';
+    // פרטי זיהוי (רכישה / כתובת / עסק)
+    let identLine='';
+    if(p.product_type==='car'){
+      identLine=`<span style="font-family:monospace;font-size:12px;font-weight:700">${fmtPlate(p.vehicle_number)||''}</span> ${covBadge(p.coverage_type)}`;
+      if(p.vehicle_make||p.vehicle_model)identLine+=` <small style="color:#64748b">${[p.vehicle_make,p.vehicle_model,p.vehicle_year].filter(Boolean).join(' ')}</small>`;
+    }else if(p.product_type==='apartment'){
+      identLine=`<small>${[p.property_address,p.property_city].filter(Boolean).join(', ')||''}</small>`;
+    }else if(p.product_type==='business'){
+      identLine=`<small>${p.business_name||''}</small>`;
+    }
+    const premTotal=[p.annual_premium,p['premium_mkif'],p['premium_hova'],p['premium_sagrir']].find(v=>v!=null&&v!=='');
+    const renewSt=renewalBadge(p);
+    return`<div class="mob-card" style="background:${bgClr};border-right:4px solid ${borderClr}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="mob-card-name">${c.name||'—'}</div>
+          <div class="mob-card-sub">${pbadge(p.product_type)} ${p.insurance_company||''}</div>
+        </div>
+        <div style="text-align:left">
+          ${p.policy_number?`<span style="font-family:monospace;font-size:11px;background:#f1f5f9;padding:2px 6px;border-radius:4px">${p.policy_number}</span>`:''}
+        </div>
+      </div>
+      ${identLine?`<div style="margin-top:5px">${identLine}</div>`:''}
+      <div style="margin-top:5px;font-size:12px;color:#475569">
+        📅 ${fd(p.start_date)} → <b>${fd(p.renewal_date||p.end_date)}</b>
+        ${premTotal!=null?` · <b style="color:#1e293b">${fc(premTotal)}</b>`:''}
+      </div>
+      ${urgLabel?`<div style="margin-top:4px">${urgLabel}</div>`:''}
+      ${renewSt?`<div style="margin-top:4px">${renewSt}</div>`:''}
+      <div class="mob-card-btns">
+        ${docBtn(p.id)}
+        <button class="btn btn-sm btn-outline-secondary" onclick="editPolicy(${p.id})"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger" onclick="delPolicy(${p.id})"><i class="bi bi-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Mobile nav helper ── */
+function mobNavActive(s){
+  document.querySelectorAll('#mob-bottomnav a').forEach(a=>a.classList.remove('active'));
+  const el=document.getElementById('mn-'+s);
+  if(el)el.classList.add('active');
+}
+/* ── FAB action based on current section ── */
+function mobFabAction(){
+  if(curSection==='clients')openClientModal();
+  else if(curSection==='policies')openPolicyModal();
+  else if(curSection==='import')document.getElementById('fl-inp')&&document.getElementById('fl-inp').click();
+  else nav('policies');
+}
+
 function selProd(t){
   document.getElementById('p-prod').value=t;
   ['car','apartment','business'].forEach(x=>{document.getElementById('pt-'+x).classList.toggle('sel',x===t);document.getElementById('f-'+x).style.display=x===t?'':'none'});
