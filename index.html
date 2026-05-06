@@ -1371,31 +1371,67 @@ async function downloadSingleDoc(pid,suffix){
 // שיתוף קובץ בודד
 async function shareSingleDoc(pid,suffix){
   const meta=getDocMeta(pid,suffix);if(!meta)return;
+  let file;
   try{
     toast('מכין לשיתוף...','info');
     const resolved=await resolveUrl(meta.url);
     const resp=await fetch(resolved);const blob=await resp.blob();
-    const f=new File([blob],meta.name||'מסמך',{type:meta.type||'application/octet-stream'});
-    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:meta.name});return;}
-  }catch(e){}
-  toast('שמור את הקובץ ושתף ידנית','info');
+    file=new File([blob],meta.name||'מסמך',{type:meta.type||'application/octet-stream'});
+  }catch(e){toast('שגיאה בטעינת הקובץ','danger');return;}
+  // נסה Web Share API
+  if(navigator.share){
+    try{
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:meta.name});return;
+      }
+      // חלק מהדפדפנים לא תומכים בשיתוף קבצים אבל תומכים ב-URL — פתח ב-Blob
+    }catch(e){if(e.name==='AbortError')return;}
+  }
+  // Fallback: הורד למכשיר
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(file);a.download=file.name;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  toast('הקובץ הורד — שתף אותו מתיקיית ההורדות','info');
 }
 // שיתוף כל הקבצים יחד
 async function shareAllDocs(pid,docs){
-  toast('מכין את כל הקבצים לשיתוף...','info');
+  toast('מכין קבצים לשיתוף...','info');
+  // טען את כל הקבצים מ-Firebase לזיכרון
+  const files=[];
   try{
-    const files=[];
     for(const d of docs){
       const resolved=await resolveUrl(d.meta.url);
       const resp=await fetch(resolved);const blob=await resp.blob();
       files.push(new File([blob],d.meta.name||d.label,{type:d.meta.type||'application/octet-stream'}));
     }
-    if(navigator.share&&navigator.canShare&&navigator.canShare({files})){
-      await navigator.share({files,title:'מסמכי פוליסה'});return;
+  }catch(e){toast('שגיאה בטעינת קבצים: '+e.message,'danger');return;}
+
+  // ניסיון 1: שיתוף כל הקבצים ביחד (נתמך ב-Android Chrome ו-iOS 15+)
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files})){
+    try{await navigator.share({files,title:'מסמכי פוליסה'});return;}
+    catch(e){if(e.name==='AbortError')return;} // ביטל את השיתוף
+  }
+
+  // ניסיון 2: שיתוף קובץ אחד אחרי השני ברצף
+  if(navigator.share){
+    for(let i=0;i<files.length;i++){
+      const f=files[i];
+      try{
+        if(navigator.canShare&&!navigator.canShare({files:[f]}))continue;
+        toast(`שולח קובץ ${i+1} מתוך ${files.length}: ${f.name}`,'info');
+        await navigator.share({files:[f],title:f.name});
+      }catch(e){if(e.name==='AbortError')return;} // עצר — לא ממשיכים
     }
-    // Fallback — פתח כל קובץ בכרטיסייה חדשה
-    files.forEach(f=>window.open(URL.createObjectURL(f),'_blank'));
-  }catch(e){toast('שגיאה בשיתוף: '+e.message,'danger');}
+    return;
+  }
+
+  // ניסיון 3 (דסקטופ): הורדת כל הקבצים למכשיר
+  files.forEach(f=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(f);a.download=f.name;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  });
+  toast('הקבצים הורדו למכשיר','info');
 }
 // מחיקת קובץ מתוך המודל — מרענן את הרשימה
 async function delDocFromModal(pid,suffix){
