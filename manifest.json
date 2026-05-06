@@ -1,0 +1,19 @@
+{
+  "name": "CRM ביטוח אלמנטרי",
+  "short_name": "CRM ביטוח",
+  "description": "ניהול לקוחות ופוליסות ביטוח — סנכרון ענן",
+  "start_url": "/crm1/",
+  "scope": "/crm1/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1a3a6e",
+  "theme_color": "#1a3a6e",
+  "lang": "he",
+  "dir": "rtl",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ],
+  "prefer_related_applications": false
+}
