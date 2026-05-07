@@ -156,8 +156,8 @@ label{font-weight:600;font-size:13px;color:#374151}
     <span id="mob-sync-dot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;flex-shrink:0"></span>
     <span id="mob-sync-lbl">ענן</span>
   </div>
-  <button id="mob-install-btn" onclick="triggerInstall()" style="display:none;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
-    <i class="bi bi-download me-1"></i>התקן
+  <button id="mob-install-btn" onclick="triggerInstall()" style="display:none;background:#2563eb;border:none;color:#fff;border-radius:20px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.3)">
+    <i class="bi bi-download me-1"></i>התקן אפליקציה
   </button>
 </div>
 
@@ -2344,42 +2344,96 @@ openDB().then(async()=>{await migrateFromLocalStorage();loadDash();}).catch(e=>a
 
 /* ── PWA Install Prompt ── */
 let _installPrompt = null;
+const _isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                   || window.navigator.standalone === true;
 
+// תפוס את האירוע אם Chrome מפעיל אותו
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   _installPrompt = e;
-  // הצג כפתור התקנה בכל המקומות
-  const mb = document.getElementById('mob-install-btn');
-  const db = document.getElementById('desk-install-wrap');
-  if(mb) mb.style.display = 'block';
-  if(db) db.style.display = 'block';
 });
 
 window.addEventListener('appinstalled', () => {
   _installPrompt = null;
+  _hideInstallBtns();
+  toast('אלמנטרי הותקנה בהצלחה! 🚗','success');
+});
+
+function _showInstallBtns(){
+  const mb = document.getElementById('mob-install-btn');
+  const db = document.getElementById('desk-install-wrap');
+  if(mb) mb.style.display = 'block';
+  if(db) db.style.display = 'block';
+}
+function _hideInstallBtns(){
   const mb = document.getElementById('mob-install-btn');
   const db = document.getElementById('desk-install-wrap');
   if(mb) mb.style.display = 'none';
   if(db) db.style.display = 'none';
-  toast('אלמנטרי הותקנה בהצלחה! 🚗','success');
-});
+}
+
+// הצג כפתור התקנה אם האפליקציה עדיין לא מותקנת
+if(!_isStandalone){
+  // חכה שהדף יטען ואז הצג
+  window.addEventListener('load', ()=> setTimeout(_showInstallBtns, 500));
+}
 
 function triggerInstall(){
   if(_installPrompt){
+    // Chrome תומך — הצג חלון התקנה מקורי
     _installPrompt.prompt();
     _installPrompt.userChoice.then(r=>{
-      if(r.outcome==='accepted') toast('מתקין אפליקציה... 🚗');
+      if(r.outcome==='accepted'){ toast('מתקין אפליקציה... 🚗'); _hideInstallBtns(); }
       _installPrompt = null;
     });
   } else {
-    // iOS — אין תמיכה ב-beforeinstallprompt, הדרך ידנית
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    // הצג הוראות ידניות לפי המכשיר
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
+    const isSamsung = /samsungbrowser/i.test(navigator.userAgent);
     if(isIOS){
-      alert('באייפון:\n1. לחץ על כפתור השיתוף ↑ בתחתית Safari\n2. בחר "הוסף למסך הבית"\n3. לחץ "הוסף" — האפליקציה תופיע!');
+      _showIOSGuide();
+    } else if(isSamsung){
+      alert('בדפדפן Samsung:\nלחץ על ⋮ (שלוש נקודות) ← "הוסף דף לעמוד הבית" ← "אפליקציה"');
     } else {
-      toast('לחץ על ⋮ (שלוש נקודות) ← "התקן אפליקציה"','info');
+      // Chrome Android — menu
+      _showAndroidGuide();
     }
   }
+}
+
+function _showIOSGuide(){
+  // מציג popup עם הסבר ויזואלי לאייפון
+  const el = document.createElement('div');
+  el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:flex-end;justify-content:center;direction:rtl';
+  el.innerHTML=`
+    <div style="background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;text-align:center">
+      <div style="font-size:18px;font-weight:700;margin-bottom:16px">📲 התקן אלמנטרי ב-iPhone</div>
+      <div style="text-align:right;line-height:2;font-size:15px">
+        <div>1️⃣ לחץ על <strong>כפתור השיתוף</strong> <span style="font-size:20px">⬆️</span> בתחתית Safari</div>
+        <div>2️⃣ גלול למטה ← לחץ <strong>"הוסף למסך הבית"</strong></div>
+        <div>3️⃣ לחץ <strong>"הוסף"</strong> — הגמור! 🎉</div>
+      </div>
+      <button onclick="this.closest('div[style]').remove()" style="margin-top:20px;background:#1a3a6e;color:#fff;border:none;border-radius:12px;padding:12px 40px;font-size:16px;font-weight:700;cursor:pointer">הבנתי</button>
+    </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', ev=>{ if(ev.target===el)el.remove(); });
+}
+
+function _showAndroidGuide(){
+  const el = document.createElement('div');
+  el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:flex-end;justify-content:center;direction:rtl';
+  el.innerHTML=`
+    <div style="background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;text-align:center">
+      <div style="font-size:18px;font-weight:700;margin-bottom:16px">📲 התקן אלמנטרי באנדרואיד</div>
+      <div style="text-align:right;line-height:2;font-size:15px">
+        <div>1️⃣ לחץ על <strong>⋮</strong> (שלוש נקודות) בפינה הימנית</div>
+        <div>2️⃣ בחר <strong>"התקן אפליקציה"</strong> או <strong>"הוסף למסך הבית"</strong></div>
+        <div>3️⃣ לחץ <strong>"התקן"</strong> — הגמור! 🎉</div>
+      </div>
+      <button onclick="this.closest('div[style]').remove()" style="margin-top:20px;background:#1a3a6e;color:#fff;border:none;border-radius:12px;padding:12px 40px;font-size:16px;font-weight:700;cursor:pointer">הבנתי</button>
+    </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', ev=>{ if(ev.target===el)el.remove(); });
 }
 
 /* ── Service Worker Registration ── */
