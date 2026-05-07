@@ -140,6 +140,11 @@ label{font-weight:600;font-size:13px;color:#374151}
     <span id="sync-dot" style="width:9px;height:9px;border-radius:50%;background:#94a3b8;flex-shrink:0;transition:background .4s"></span>
     <span id="sync-lbl" style="font-size:11px;opacity:.7;color:#fff">מתחבר לענן...</span>
   </div>
+  <div id="desk-install-wrap" style="display:none;padding:10px 14px;border-top:1px solid rgba(255,255,255,.1)">
+    <button onclick="triggerInstall()" style="width:100%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:8px;font-size:13px;font-weight:700;cursor:pointer">
+      <i class="bi bi-download me-1"></i>התקן כאפליקציה
+    </button>
+  </div>
   <div class="sf">אלמנטרי v2.0 ☁</div>
 </div>
 
@@ -151,6 +156,9 @@ label{font-weight:600;font-size:13px;color:#374151}
     <span id="mob-sync-dot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;flex-shrink:0"></span>
     <span id="mob-sync-lbl">ענן</span>
   </div>
+  <button id="mob-install-btn" onclick="triggerInstall()" style="display:none;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
+    <i class="bi bi-download me-1"></i>התקן
+  </button>
 </div>
 
 <!-- ═══ MOBILE BOTTOM NAV ═══ -->
@@ -2334,18 +2342,56 @@ async function clearAllData(){
 ══════════════════════════════════════════════ */
 openDB().then(async()=>{await migrateFromLocalStorage();loadDash();}).catch(e=>alert('שגיאה בחיבור לענן: '+e.message));
 
+/* ── PWA Install Prompt ── */
+let _installPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _installPrompt = e;
+  // הצג כפתור התקנה בכל המקומות
+  const mb = document.getElementById('mob-install-btn');
+  const db = document.getElementById('desk-install-wrap');
+  if(mb) mb.style.display = 'block';
+  if(db) db.style.display = 'block';
+});
+
+window.addEventListener('appinstalled', () => {
+  _installPrompt = null;
+  const mb = document.getElementById('mob-install-btn');
+  const db = document.getElementById('desk-install-wrap');
+  if(mb) mb.style.display = 'none';
+  if(db) db.style.display = 'none';
+  toast('אלמנטרי הותקנה בהצלחה! 🚗','success');
+});
+
+function triggerInstall(){
+  if(_installPrompt){
+    _installPrompt.prompt();
+    _installPrompt.userChoice.then(r=>{
+      if(r.outcome==='accepted') toast('מתקין אפליקציה... 🚗');
+      _installPrompt = null;
+    });
+  } else {
+    // iOS — אין תמיכה ב-beforeinstallprompt, הדרך ידנית
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if(isIOS){
+      alert('באייפון:\n1. לחץ על כפתור השיתוף ↑ בתחתית Safari\n2. בחר "הוסף למסך הבית"\n3. לחץ "הוסף" — האפליקציה תופיע!');
+    } else {
+      toast('לחץ על ⋮ (שלוש נקודות) ← "התקן אפליקציה"','info');
+    }
+  }
+}
+
 /* ── Service Worker Registration ── */
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('sw.js').then(reg=>{
-      // בדוק עדכון בכל טעינה
       reg.update();
       reg.addEventListener('updatefound', ()=>{
         const nw = reg.installing;
         nw.addEventListener('statechange', ()=>{
           if(nw.state==='installed' && navigator.serviceWorker.controller){
-            // גרסה חדשה זמינה — הצג toast
-            setTimeout(()=>toast('גרסה חדשה זמינה — סגור ופתח מחדש לעדכון 🔄','info'),1000);
+            setTimeout(()=>toast('גרסה חדשה זמינה — סגור ופתח מחדש לעדכון 🔄','info'),1500);
           }
         });
       });
